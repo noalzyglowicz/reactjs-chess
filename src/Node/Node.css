@@ -1,0 +1,43 @@
+.node {
+  width: 50px;
+  height: 50px;
+  background-color: rgb(133, 82, 12);
+  outline: 1px solid rgb(133, 82, 12);
+  display: inline-block;
+}
+
+.evenRowOddNode {
+  width: 50px;
+  height: 50px;
+  background-color: rgb(245, 174, 76);
+  outline: 1px solid rgb(245, 174, 76);
+  display: inline-block;
+}
+
+.evenRowEvenNode {
+  width: 50px;
+  height: 50px;
+  background-color: rgb(133, 82, 12);
+  outline: 1px solid rgb(133, 82, 12);
+  display: inline-block;
+}
+
+.oddRowOddNode {
+  width: 50px;
+  height: 50px;
+  background-color: rgb(133, 82, 12);
+  outline: 1px solid rgb(133, 82, 12);
+  display: inline-block;
+}
+
+.oddRowEvenNode {
+  width: 50px;
+  height: 50px;
+  background-color: rgb(245, 174, 76);
+  outline: 1px solid rgb(245, 174, 76);
+  display: inline-block;
+}
+
+.image {
+  text-align: center;
+}
