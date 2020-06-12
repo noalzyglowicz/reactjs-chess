@@ -4,8 +4,7 @@ import whiteKnight from "./whiteKnight.svg";
 
 export default class Knight extends Component {
   render() {
-    const { row, col, color } = this.props;
-    if (this.props.children[6] == "black") {
+    if (this.props.color === "black") {
       var source = blackKnight;
     } else {
       var source = whiteKnight;

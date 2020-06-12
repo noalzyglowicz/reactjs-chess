@@ -4,8 +4,7 @@ import whiteRook from "./whiteRook.svg";
 
 export default class Rook extends Component {
   render() {
-    const { row, col, color } = this.props;
-    if (this.props.children[6] == "black") {
+    if (this.props.color === "black") {
       var source = blackRook;
     } else {
       var source = whiteRook;

@@ -1,7 +1,6 @@
-import React from 'react';
-import './App.css';
-import ChessBoard from './ChessBoard/ChessBoard'
-import logo from './logo.svg'
+import React from "react";
+import "./App.css";
+import ChessBoard from "./ChessBoard/ChessBoard";
 
 function App() {
   return (

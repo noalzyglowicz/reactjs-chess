@@ -4,8 +4,7 @@ import whitePawn from "./whitePawn.svg";
 
 export default class Pawn extends Component {
   render() {
-    const { row, col, color } = this.props;
-    if (this.props.children[6] == "black") {
+    if (this.props.color === "black") {
       var source = blackPawn;
     } else {
       var source = whitePawn;

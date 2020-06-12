@@ -4,8 +4,7 @@ import whiteBishop from "./whiteBishop.svg";
 
 export default class Bishop extends Component {
   render() {
-    const { row, col, color } = this.props;
-    if (this.props.children[6] == "black") {
+    if (this.props.color == "black") {
       var source = blackBishop;
     } else {
       var source = whiteBishop;

@@ -4,8 +4,7 @@ import whiteQueen from "./whiteQueen.svg";
 
 export default class Queen extends Component {
   render() {
-    const { row, col, color } = this.props;
-    if (this.props.children[6] == "black") {
+    if (this.props.color === "black") {
       var source = blackQueen;
     } else {
       var source = whiteQueen;

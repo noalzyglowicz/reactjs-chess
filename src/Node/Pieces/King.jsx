@@ -3,32 +3,43 @@ import blackKing from "./blackKing.svg";
 import whiteKing from "./whiteKing.svg";
 
 export default class King extends Component {
-  // getAvailableMoves = (row, col) => {
-  //   availableMoves = [];
-  //   if(validMove(row + 1, col + 1)){
-  //     availableMoves.push([row + 1, col + 1]);
-  //   }
-  //   if(validMove(row - 1, col + 1)){
-  //     availableMoves.push([row - 1, col + 1]);
-  //   }
-  //   if(validMove(row + 1, col - 1)){
-  //     availableMoves.push([row + 1, col - 1]);
-  //   }
-  //   if(validMove(row - 1, col - 1)){
-  //     availableMoves.push([row - 1, col - 1]);
-  //   }
-  //   return availableMoves;
-  // }
+  constructor() {
+    super();
+    this.state = {
+      row: 0,
+      col: 0,
+    };
+  }
+  getAvailableMoves = (row, col) => {
+    let availableMoves = [];
+    availableMoves.push([row + 1, col]);
+    availableMoves.push([row - 1, col]);
+    availableMoves.push([row, col - 1]);
+    availableMoves.push([row, col + 1]);
+    return availableMoves;
+  };
 
   render() {
-    const { row, col, color } = this.props;
-    if (this.props.children[6] == "black") {
+    if (this.props.color === "black") {
       var source = blackKing;
     } else {
       var source = whiteKing;
     }
+    let clickedCoordinates = this.props.getClickedCoordinates();
+    var coordinateList = this.getAvailableMoves(
+      clickedCoordinates[0],
+      clickedCoordinates[1]
+    );
+    console.log(clickedCoordinates);
     return (
-      <img src={source} alt="" width="50" height="50" className="image"></img>
+      <img
+        src={source}
+        alt=""
+        width="50"
+        height="50"
+        className="image"
+        onClick={() => this.props.changeAvailableMoves(coordinateList)}
+      ></img>
     );
   }
 }
