@@ -101,12 +101,12 @@ export default class ChessBoard extends Component {
   }
 
   handleMouseDown(row, col) {
+    console.log(this.state.clickedCoordinates);
     if (this.state.isClicked) {
       this.move(row, col);
     }
     if (this.state.isClicked) {
       this.setState({
-        clickedCoordinates: [row, col],
         mouseIsPressed: true,
         isClicked: false,
       });
