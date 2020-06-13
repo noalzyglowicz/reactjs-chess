@@ -30,7 +30,6 @@ export default class King extends Component {
       clickedCoordinates[0],
       clickedCoordinates[1]
     );
-    console.log(clickedCoordinates);
     return (
       <img
         src={source}
