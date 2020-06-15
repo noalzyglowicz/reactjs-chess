@@ -55,6 +55,8 @@ export default class ChessBoard extends Component {
   // }
 
   move(row, col) {
+    console.log(row, col);
+    //console.log(this.state.clickedCoordinates);
     let handleMouseDownFunc = () => this.handleMouseDown(row, col);
     let handleMouseUpFunc = () => this.handleMouseUp(row, col);
     if (
@@ -68,42 +70,50 @@ export default class ChessBoard extends Component {
       newGrid[this.state.clickedCoordinates[0]][
         this.state.clickedCoordinates[1]
       ].Node.props.piece;
-    let piece = <BlankSquare></BlankSquare>;
-    newGrid[this.state.clickedCoordinates[0]][
-      this.state.clickedCoordinates[1]
-    ] = this.createChessSquare(
+    let newPiece = <BlankSquare></BlankSquare>;
+    //console.log(pieceToMove);
+    // console.log(
+    //   newGrid[this.state.clickedCoordinates[0]][
+    //     this.state.clickedCoordinates[1]
+    //   ]
+    // );
+    if (!(newGrid[row][col].Node.props.piece.type.name === "BlankSquare")) {
+      if (
+        newGrid[row][col].Node.props.piece.props.color ===
+        newGrid[this.state.clickedCoordinates[0]][
+          this.state.clickedCoordinates[1]
+        ].Node.props.piece.props.color
+      ) {
+        return false;
+      }
+    }
+    newGrid[row][col] = this.createChessSquare(
+      col,
+      row,
+      this.createNode(
+        row,
+        col,
+        pieceToMove,
+        handleMouseDownFunc,
+        handleMouseUpFunc
+      )
+    );
+    //console.log(newGrid[row][col]);
+    console.log("here adding new blank square");
+    let newThing = this.createChessSquare(
       this.state.clickedCoordinates[1],
       this.state.clickedCoordinates[0],
       this.createNode(
         this.state.clickedCoordinates[0],
         this.state.clickedCoordinates[1],
-        piece,
+        newPiece,
         handleMouseDownFunc,
         handleMouseUpFunc
       )
     );
-    console.log(newGrid[row][col]);
-
-    // if (!(newGrid[row][col].Node.props.piece.type.name === "BlankSquare")) {
-    //   if (
-    //     newGrid[row][col].Node.props.piece.props.color ===
-    //     clickedChessSquare.Node.props.piece.props.color
-    //   ) {
-    //     return false;
-    //   }
-    // }
-    // newGrid[row][col] = this.createChessSquare(
-    //   col,
-    //   row,
-    //   this.createNode(
-    //     row,
-    //     col,
-    //     pieceToMove,
-    //     handleMouseDownFunc,
-    //     handleMouseUpFunc
-    //   )
-    // );
-    //console.log(this.state.clickedCoordinates);
+    newGrid[this.state.clickedCoordinates[0]][
+      this.state.clickedCoordinates[1]
+    ] = newThing;
     this.setState({ grid: newGrid });
     return true;
   }
@@ -118,6 +128,7 @@ export default class ChessBoard extends Component {
         isClicked: false,
       });
     } else {
+      console.log("here updating coordinates");
       this.setState({
         clickedCoordinates: [row, col],
         mouseIsPressed: true,
