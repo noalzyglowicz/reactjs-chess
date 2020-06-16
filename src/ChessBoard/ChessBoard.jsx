@@ -55,70 +55,60 @@ export default class ChessBoard extends Component {
   // }
 
   move(row, col) {
-    console.log(row, col);
-    //console.log(this.state.clickedCoordinates);
-    let handleMouseDownFunc = () => this.handleMouseDown(row, col);
-    let handleMouseUpFunc = () => this.handleMouseUp(row, col);
     if (
       row == this.state.clickedCoordinates[0] &&
       col == this.state.clickedCoordinates[1]
     ) {
       return false;
     }
+
     let newGrid = this.state.grid.slice();
     let pieceToMove =
       newGrid[this.state.clickedCoordinates[0]][
         this.state.clickedCoordinates[1]
       ].Node.props.piece;
     let newPiece = <BlankSquare></BlankSquare>;
-    //console.log(pieceToMove);
-    // console.log(
-    //   newGrid[this.state.clickedCoordinates[0]][
-    //     this.state.clickedCoordinates[1]
-    //   ]
-    // );
-    if (!(newGrid[row][col].Node.props.piece.type.name === "BlankSquare")) {
-      if (
-        newGrid[row][col].Node.props.piece.props.color ===
-        newGrid[this.state.clickedCoordinates[0]][
-          this.state.clickedCoordinates[1]
-        ].Node.props.piece.props.color
-      ) {
-        return false;
-      }
+
+    if (
+      this.checkIfSameColor(newGrid, row, col, this.state.clickedCoordinates)
+    ) {
+      return false;
     }
     newGrid[row][col] = this.createChessSquare(
       col,
       row,
-      this.createNode(
-        row,
-        col,
-        pieceToMove,
-        handleMouseDownFunc,
-        handleMouseUpFunc
-      )
+      this.createNode(row, col, pieceToMove)
     );
-    //console.log(newGrid[row][col]);
-    console.log("here adding new blank square");
-    let newThing = this.createChessSquare(
+    newGrid[this.state.clickedCoordinates[0]][
+      this.state.clickedCoordinates[1]
+    ] = this.createChessSquare(
       this.state.clickedCoordinates[1],
       this.state.clickedCoordinates[0],
       this.createNode(
         this.state.clickedCoordinates[0],
         this.state.clickedCoordinates[1],
-        newPiece,
-        handleMouseDownFunc,
-        handleMouseUpFunc
+        newPiece
       )
     );
-    newGrid[this.state.clickedCoordinates[0]][
-      this.state.clickedCoordinates[1]
-    ] = newThing;
+
     this.setState({ grid: newGrid });
     return true;
   }
 
+  checkIfSameColor(newGrid, row, col, clickedCoordinates) {
+    if (!(newGrid[row][col].Node.props.piece.type.name === "BlankSquare")) {
+      if (
+        newGrid[row][col].Node.props.piece.props.color ===
+        newGrid[clickedCoordinates[0]][clickedCoordinates[1]].Node.props.piece
+          .props.color
+      ) {
+        return true;
+      }
+    }
+  }
+
   handleMouseDown(row, col) {
+    console.log(this.state.availableMoves);
     if (this.state.isClicked) {
       this.move(row, col);
     }
@@ -128,7 +118,6 @@ export default class ChessBoard extends Component {
         isClicked: false,
       });
     } else {
-      console.log("here updating coordinates");
       this.setState({
         clickedCoordinates: [row, col],
         mouseIsPressed: true,
@@ -142,7 +131,6 @@ export default class ChessBoard extends Component {
   }
 
   render() {
-    //console.log(this.state.isClicked);
     const { grid } = this.state;
     return (
       <div className="grid">
@@ -171,15 +159,7 @@ export default class ChessBoard extends Component {
       const currentRow = [];
       for (let col = 0; col < 8; col++) {
         let piece = this.getStartingPiece(row, col);
-        let handleMouseDownFunc = () => this.handleMouseDown(row, col);
-        let handleMouseUpFunc = () => this.handleMouseUp(row, col);
-        Node = this.createNode(
-          row,
-          col,
-          piece,
-          handleMouseDownFunc,
-          handleMouseUpFunc
-        );
+        Node = this.createNode(row, col, piece);
         currentRow.push(this.createChessSquare(col, row, Node));
       }
       grid.push(currentRow);
@@ -195,15 +175,15 @@ export default class ChessBoard extends Component {
     };
   };
 
-  createNode(row, col, piece, handleMouseDownFunc, handleMouseUpFunc) {
+  createNode(row, col, piece) {
     return (
       <Node
         key={col}
         row={row}
         col={col}
         piece={piece}
-        onMouseDown={handleMouseDownFunc}
-        onMouseUp={handleMouseUpFunc}
+        onMouseDown={() => this.handleMouseDown(row, col)}
+        onMouseUp={() => this.handleMouseUp(row, col)}
       ></Node>
     );
   }
