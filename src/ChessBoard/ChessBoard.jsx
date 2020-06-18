@@ -21,65 +21,22 @@ export default class ChessBoard extends Component {
     };
   }
 
-  // /**
-  //  *
-  //  * @param {*} nextRow : y coordinate of space to move to
-  //  * @param {*} nextCol : x coordinate of space to move to
-  //  * @param {*} piece : type of piece(i.e. Rook, Knight)
-  //  */
-  // validMove(nextRow, nextCol, piece) {
-  //     if(nextRow > piece.row){
-  //         let maxRow = nextRow;
-  //         let minRow = piece.row;
-  //     } else {
-  //         let maxRow = piece.row;
-  //         let minRow = nextRow;
-  //     }
-  //     if(nextCol > piece.col){
-  //         let maxCol = nextCol;
-  //         let minCol = piece.col;
-  //     } else {
-  //         let maxCol = piece.col;
-  //         let minCol = nextCol;
-  //     }
-
-  //     for(minRow; minRow < maxRow; minRow++){
-  //         for(minCol; minCol < maxCol; minCol++){
-  //             if((grid[minRow][minCol].piece.color) == piece.color){
-  //                 return false;
-  //             }
-  //         }
-  //     }
-  //     return true
-
-  // }
-
   move(row, col) {
-    if (
-      row == this.state.clickedCoordinates[0] &&
-      col == this.state.clickedCoordinates[1]
-    ) {
+    if (!this.validMove(row, col, this.state)) {
       return false;
     }
 
-    let newGrid = this.state.grid.slice();
-    let pieceToMove =
-      newGrid[this.state.clickedCoordinates[0]][
-        this.state.clickedCoordinates[1]
-      ].Node.props.piece;
+    let pieceToMove = this.state.grid[this.state.clickedCoordinates[0]][
+      this.state.clickedCoordinates[1]
+    ].Node.props.piece;
     let newPiece = <BlankSquare></BlankSquare>;
 
-    if (
-      this.checkIfSameColor(newGrid, row, col, this.state.clickedCoordinates)
-    ) {
-      return false;
-    }
-    newGrid[row][col] = this.createChessSquare(
+    this.state.grid[row][col] = this.createChessSquare(
       col,
       row,
       this.createNode(row, col, pieceToMove)
     );
-    newGrid[this.state.clickedCoordinates[0]][
+    this.state.grid[this.state.clickedCoordinates[0]][
       this.state.clickedCoordinates[1]
     ] = this.createChessSquare(
       this.state.clickedCoordinates[1],
@@ -90,17 +47,50 @@ export default class ChessBoard extends Component {
         newPiece
       )
     );
-
-    this.setState({ grid: newGrid });
     return true;
   }
 
-  checkIfSameColor(newGrid, row, col, clickedCoordinates) {
-    if (!(newGrid[row][col].Node.props.piece.type.name === "BlankSquare")) {
+  validMove(row, col, state) {
+    let isDifferentSquare = this.isDifferentSquare(row, col, state);
+    let containsMove = this.containsMove(row, col, state);
+    let isSameColor = this.isSameColor(row, col, state);
+    if (containsMove && isDifferentSquare && !isSameColor) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  isDifferentSquare(row, col, state) {
+    let isDifferentSquare = true;
+    if (
+      row == state.clickedCoordinates[0] &&
+      col == state.clickedCoordinates[1]
+    ) {
+      isDifferentSquare = false;
+    }
+    return isDifferentSquare;
+  }
+
+  containsMove(row, col, state) {
+    let containsMove = false;
+    for (let i = 0; i < state.availableMoves.length; i++) {
       if (
-        newGrid[row][col].Node.props.piece.props.color ===
-        newGrid[clickedCoordinates[0]][clickedCoordinates[1]].Node.props.piece
-          .props.color
+        state.availableMoves[i][0] == row &&
+        state.availableMoves[i][1] == col
+      ) {
+        containsMove = true;
+      }
+    }
+    return containsMove;
+  }
+
+  isSameColor(row, col, state) {
+    if (!(state.grid[row][col].Node.props.piece.type.name === "BlankSquare")) {
+      if (
+        state.grid[row][col].Node.props.piece.props.color ===
+        state.grid[state.clickedCoordinates[0]][state.clickedCoordinates[1]]
+          .Node.props.piece.props.color
       ) {
         return true;
       }
@@ -108,7 +98,38 @@ export default class ChessBoard extends Component {
   }
 
   handleMouseDown(row, col) {
-    console.log(this.state.availableMoves);
+    let piece = this.state.grid[row][col].Node.props.piece;
+    if (this.state.grid[row][col].Node.props.piece.type.name === "Pawn") {
+      var newPiece = this.createPawn(row, col, piece.props.color);
+    } else if (
+      this.state.grid[row][col].Node.props.piece.type.name === "Rook"
+    ) {
+      newPiece = this.createRook(row, col, piece.props.color);
+    } else if (
+      this.state.grid[row][col].Node.props.piece.type.name === "Knight"
+    ) {
+      newPiece = this.createKnight(row, col, piece.props.color);
+    } else if (
+      this.state.grid[row][col].Node.props.piece.type.name === "Bishop"
+    ) {
+      newPiece = this.createBishop(row, col, piece.props.color);
+    } else if (
+      this.state.grid[row][col].Node.props.piece.type.name === "Queen"
+    ) {
+      newPiece = this.createQueen(row, col, piece.props.color);
+    } else if (
+      this.state.grid[row][col].Node.props.piece.type.name === "King"
+    ) {
+      newPiece = this.createKing(row, col, piece.props.color);
+    } else {
+      newPiece = this.createBlankSquare();
+    }
+    this.state.grid[row][col] = this.createChessSquare(
+      row,
+      col,
+      this.createNode(row, col, newPiece)
+    );
+
     if (this.state.isClicked) {
       this.move(row, col);
     }
@@ -137,8 +158,8 @@ export default class ChessBoard extends Component {
         {grid.map((row, rowIdx) => {
           return (
             <div key={rowIdx}>
-              {row.map((node, nodeIdx) => {
-                const { row, col, Node } = node;
+              {row.map((node) => {
+                const { Node } = node;
                 return Node;
               })}
             </div>
@@ -190,49 +211,109 @@ export default class ChessBoard extends Component {
 
   getStartingPiece(row, col) {
     if (row === 1) {
-      var piece = <Pawn row={row} col={col} color={"white"}></Pawn>;
+      var piece = this.createPawn(row, col, "white");
     } else if (row === 0 && (col === 0 || col === 7)) {
-      var piece = <Rook row={row} col={col} color={"white"}></Rook>;
+      var piece = this.createRook(row, col, "white");
     } else if (row === 0 && (col === 1 || col === 6)) {
-      var piece = <Knight row={row} col={col} color={"white"}></Knight>;
+      var piece = this.createKnight(row, col, "white");
     } else if (row === 0 && (col === 2 || col === 5)) {
-      var piece = <Bishop row={row} col={col} color={"white"}></Bishop>;
+      var piece = this.createBishop(row, col, "white");
     } else if (row === 0 && col === 3) {
-      var piece = <Queen row={row} col={col} color={"white"}></Queen>;
+      var piece = this.createQueen(row, col, "white");
     } else if (row === 0 && col === 4) {
-      var piece = (
-        <King
-          row={row}
-          col={col}
-          color={"white"}
-          changeAvailableMoves={this.changeAvailableMoves.bind(this)}
-          getClickedCoordinates={this.getClickedCoordinates.bind(this)}
-        ></King>
-      );
+      var piece = this.createKing(row, col, "white");
     } else if (row === 6) {
-      var piece = <Pawn row={row} col={col} color={"black"}></Pawn>;
+      var piece = this.createPawn(row, col, "black");
     } else if (row === 7 && (col === 0 || col === 7)) {
-      var piece = <Rook row={row} col={col} color={"black"}></Rook>;
+      var piece = this.createRook(row, col, "black");
     } else if (row === 7 && (col === 1 || col === 6)) {
-      var piece = <Knight row={row} col={col} color={"black"}></Knight>;
+      var piece = this.createKnight(row, col, "black");
     } else if (row === 7 && (col === 2 || col === 5)) {
-      var piece = <Bishop row={row} col={col} color={"black"}></Bishop>;
+      var piece = this.createBishop(row, col, "black");
     } else if (row === 7 && col === 3) {
-      var piece = <Queen row={row} col={col} color={"black"}></Queen>;
+      var piece = this.createQueen(row, col, "black");
     } else if (row === 7 && col === 4) {
-      var piece = (
-        <King
-          row={row}
-          col={col}
-          color={"black"}
-          changeAvailableMoves={this.changeAvailableMoves.bind(this)}
-          getClickedCoordinates={this.getClickedCoordinates.bind(this)}
-        ></King>
-      );
+      var piece = this.createKing(row, col, "black");
     } else {
-      var piece = <BlankSquare></BlankSquare>;
+      var piece = this.createBlankSquare();
     }
     return piece;
+  }
+
+  createPawn(row, col, color) {
+    return (
+      <Pawn
+        row={row}
+        col={col}
+        color={color}
+        changeAvailableMoves={this.changeAvailableMoves.bind(this)}
+        getClickedCoordinates={this.getClickedCoordinates.bind(this)}
+      ></Pawn>
+    );
+  }
+
+  createKnight(row, col, color) {
+    return (
+      <Knight
+        row={row}
+        col={col}
+        color={color}
+        changeAvailableMoves={this.changeAvailableMoves.bind(this)}
+        getClickedCoordinates={this.getClickedCoordinates.bind(this)}
+      ></Knight>
+    );
+  }
+
+  createBishop(row, col, color) {
+    return (
+      <Bishop
+        row={row}
+        col={col}
+        color={color}
+        changeAvailableMoves={this.changeAvailableMoves.bind(this)}
+        getClickedCoordinates={this.getClickedCoordinates.bind(this)}
+      ></Bishop>
+    );
+  }
+
+  createRook(row, col, color) {
+    return (
+      <Rook
+        row={row}
+        col={col}
+        color={color}
+        changeAvailableMoves={this.changeAvailableMoves.bind(this)}
+        getClickedCoordinates={this.getClickedCoordinates.bind(this)}
+      ></Rook>
+    );
+  }
+
+  createQueen(row, col, color) {
+    return (
+      <Queen
+        row={row}
+        col={col}
+        color={color}
+        changeAvailableMoves={this.changeAvailableMoves.bind(this)}
+        getClickedCoordinates={this.getClickedCoordinates.bind(this)}
+      ></Queen>
+    );
+  }
+
+  createKing(row, col, color) {
+    return (
+      <King
+        row={row}
+        col={col}
+        color={color}
+        changeAvailableMoves={this.changeAvailableMoves.bind(this)}
+        getClickedCoordinates={this.getClickedCoordinates.bind(this)}
+      ></King>
+    );
+  }
+
+  createBlankSquare() {
+    return <BlankSquare></BlankSquare>;
   }
 
   changeAvailableMoves(moves) {
