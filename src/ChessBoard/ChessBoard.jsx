@@ -20,6 +20,8 @@ export default class ChessBoard extends Component {
       clickedNode: undefined,
       clickedPieceName: undefined,
       availableMoves: [],
+      blackHasCastled: false,
+      whiteHasCastled: false,
     };
   }
 
@@ -276,15 +278,15 @@ export default class ChessBoard extends Component {
     let newPiece = <BlankSquare></BlankSquare>;
 
     newGrid[row][col] = this.createChessSquare(
-      col,
       row,
+      col,
       this.createNode(row, col, pieceToMove, false)
     );
     newGrid[this.state.clickedCoordinates[0]][
       this.state.clickedCoordinates[1]
     ] = this.createChessSquare(
-      this.state.clickedCoordinates[1],
       this.state.clickedCoordinates[0],
+      this.state.clickedCoordinates[1],
       this.createNode(
         this.state.clickedCoordinates[0],
         this.state.clickedCoordinates[1],
@@ -359,14 +361,14 @@ export default class ChessBoard extends Component {
       for (let col = 0; col < 8; col++) {
         let piece = this.getStartingPiece(row, col);
         Node = this.createNode(row, col, piece, false);
-        currentRow.push(this.createChessSquare(col, row, Node));
+        currentRow.push(this.createChessSquare(row, col, Node));
       }
       grid.push(currentRow);
     }
     return grid;
   };
 
-  createChessSquare = (col, row, Node) => {
+  createChessSquare = (row, col, Node) => {
     return {
       row,
       col,
@@ -392,8 +394,8 @@ export default class ChessBoard extends Component {
   //   let newGrid = this.state.grid.slice();
   //   let piece = this.getPiece(row, col);
   //   newGrid[row][col] = this.createChessSquare(
-  //     col,
   //     row,
+  //     col,
   //     this.createNode(row, col, piece, true)
   //   );
   //   this.setState({ grid: newGrid });
