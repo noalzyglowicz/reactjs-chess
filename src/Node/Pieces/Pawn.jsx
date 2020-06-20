@@ -3,10 +3,10 @@ import blackPawn from "./blackPawn.svg";
 import whitePawn from "./whitePawn.svg";
 
 export default class Pawn extends Component {
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
     this.state = {
-      isInStartingState: true,
+      isInStartingState: this.props.isInStartingState,
     };
   }
 
@@ -26,12 +26,15 @@ export default class Pawn extends Component {
     return availableMoves;
   };
   render() {
+    console.log(this.props.isInStartingState);
     if (this.props.color === "black") {
       var source = blackPawn;
     } else {
       var source = whitePawn;
     }
+    let f = this.props.getClickedCoordinates;
     var coordinateList = this.getAvailableMoves(this.props.row, this.props.col);
+    //var coordinateList = this.getAvailableMoves(f()[0], f()[1]);
     return (
       <img
         src={source}
