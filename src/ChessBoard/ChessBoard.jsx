@@ -46,6 +46,9 @@ export default class ChessBoard extends Component {
           }
         }
       }
+      if (!this.isEmptySquare(row - 1, col)) {
+        availableMoves2.splice(0, 1); //removes vertical take of pawn if piece ahead
+      }
     } else {
       if (this.isValidCoordinates(row + 1, col + 1)) {
         if (!this.isEmptySquare(row + 1, col + 1)) {
@@ -61,15 +64,157 @@ export default class ChessBoard extends Component {
           }
         }
       }
+      if (!this.isEmptySquare(row + 1, col)) {
+        availableMoves2.splice(0, 1); //removes vertical take of pawn if piece ahead
+      }
     }
     this.setState({ availableMoves: availableMoves2 });
     return availableMoves2;
   }
 
+  isIllegalStraight(row, col) {
+    if (
+      !(row === this.state.clickedCoordinates[0]) &&
+      !(col === this.state.clickedCoordinates[1])
+    ) {
+      return false;
+    }
+    let isIllegalStraight = false;
+    if (row === this.state.clickedCoordinates[0]) {
+      if (this.state.clickedCoordinates[1] < col) {
+        for (let i = 1; i < col - this.state.clickedCoordinates[1]; i++) {
+          console.log("to the right");
+          if (!this.isEmptySquare(row, this.state.clickedCoordinates[1] + i)) {
+            isIllegalStraight = true;
+          }
+        }
+      } else {
+        console.log("to the here");
+        for (let i = 1; i < this.state.clickedCoordinates[1] - col; i++) {
+          console.log("to the left");
+          if (!this.isEmptySquare(row, this.state.clickedCoordinates[1] - i)) {
+            isIllegalStraight = true;
+          }
+        }
+      }
+    } else {
+      if (this.state.clickedCoordinates[0] < row) {
+        for (let i = 1; i < row - this.state.clickedCoordinates[0]; i++) {
+          console.log("down");
+          if (!this.isEmptySquare(this.state.clickedCoordinates[0] + i, col)) {
+            isIllegalStraight = true;
+          }
+        }
+      } else {
+        for (let i = 1; i < this.state.clickedCoordinates[0] - row; i++) {
+          console.log("up");
+          if (!this.isEmptySquare(this.state.clickedCoordinates[0] - i, col)) {
+            isIllegalStraight = true;
+          }
+        }
+      }
+    }
+    return isIllegalStraight;
+  }
+
+  isIlegalSlant(row, col) {
+    if (
+      row === this.state.clickedCoordinates[0] ||
+      col === this.state.clickedCoordinates[1]
+    ) {
+      return false;
+    }
+    let isIlegalJump = false;
+    if (this.state.clickedCoordinates[0] < row) {
+      if (this.state.clickedCoordinates[1] < col) {
+        for (let i = 1; i < row - this.state.clickedCoordinates[0]; i++) {
+          console.log("down to right");
+          if (
+            this.isValidCoordinates(
+              this.state.clickedCoordinates[0] + i,
+              this.state.clickedCoordinates[1] + i
+            )
+          ) {
+            if (
+              !this.isEmptySquare(
+                this.state.clickedCoordinates[0] + i,
+                this.state.clickedCoordinates[1] + i
+              )
+            ) {
+              isIlegalJump = true;
+            }
+          }
+        }
+      } else {
+        for (let i = 1; i < row - this.state.clickedCoordinates[0]; i++) {
+          console.log("down to left");
+          if (
+            this.isValidCoordinates(
+              this.state.clickedCoordinates[0] + i,
+              this.state.clickedCoordinates[1] - i
+            )
+          ) {
+            if (
+              !this.isEmptySquare(
+                this.state.clickedCoordinates[0] + i,
+                this.state.clickedCoordinates[1] - i
+              )
+            ) {
+              isIlegalJump = true;
+            }
+          }
+        }
+      }
+    } else {
+      if (this.state.clickedCoordinates[1] < col) {
+        for (let i = 1; i < this.state.clickedCoordinates[0] - row; i++) {
+          console.log("up to right");
+          if (
+            this.isValidCoordinates(
+              this.state.clickedCoordinates[0] - i,
+              this.state.clickedCoordinates[1] + i
+            )
+          ) {
+            if (
+              !this.isEmptySquare(
+                this.state.clickedCoordinates[0] - i,
+                this.state.clickedCoordinates[1] + i
+              )
+            ) {
+              isIlegalJump = true;
+            }
+          }
+        }
+      } else {
+        for (let i = 1; i < this.state.clickedCoordinates[0] - row; i++) {
+          console.log("up to left");
+          if (
+            this.isValidCoordinates(
+              this.state.clickedCoordinates[0] - i,
+              this.state.clickedCoordinates[1] - i
+            )
+          ) {
+            if (
+              !this.isEmptySquare(
+                this.state.clickedCoordinates[0] - i,
+                this.state.clickedCoordinates[1] - i
+              )
+            ) {
+              isIlegalJump = true;
+            }
+          }
+        }
+      }
+    }
+    return isIlegalJump;
+  }
+
   validMove(row, col, availableMoves) {
     let containsMove = this.containsMove(row, col, availableMoves);
     let isSameColor = this.isSameColor(row, col);
-    if (containsMove && !isSameColor) {
+    let isIllegalSlant = this.isIlegalSlant(row, col);
+    let isIllegalStraight = this.isIllegalStraight(row, col);
+    if (containsMove && !isSameColor && !isIllegalSlant && !isIllegalStraight) {
       this.setState({ isClicked: false });
       return true;
     } else {

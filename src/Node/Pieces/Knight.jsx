@@ -8,11 +8,12 @@ export default class Knight extends Component {
     availableMoves.push([row + 2, col + 1]);
     availableMoves.push([row + 2, col - 1]);
     availableMoves.push([row - 2, col + 1]);
-    availableMoves.push([row - 2, col + 1]);
+    availableMoves.push([row - 2, col - 1]);
     availableMoves.push([row + 1, col + 2]);
     availableMoves.push([row - 1, col + 2]);
     availableMoves.push([row + 1, col - 2]);
     availableMoves.push([row - 1, col - 2]);
+
     return availableMoves;
   };
 
