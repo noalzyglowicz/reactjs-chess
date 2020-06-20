@@ -32,7 +32,7 @@ export default class Pawn extends Component {
     } else {
       var source = whitePawn;
     }
-    let f = this.props.getClickedCoordinates;
+    let f = this.props.getSelectedCoordinates;
     var coordinateList = this.getAvailableMoves(this.props.row, this.props.col);
     //var coordinateList = this.getAvailableMoves(f()[0], f()[1]);
     return (

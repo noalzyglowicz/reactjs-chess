@@ -15,13 +15,14 @@ export default class ChessBoard extends Component {
     this.state = {
       grid: [],
       mouseIsPressed: false,
-      isClicked: false,
-      clickedCoordinates: [],
-      clickedNode: undefined,
-      clickedPieceName: undefined,
+      isSelected: false,
+      selectedNode: undefined,
+      selectedPieceName: undefined,
       availableMoves: [],
       blackHasCastled: false,
       whiteHasCastled: false,
+      selectedRow: undefined,
+      selectedCol: undefined,
     };
   }
 
@@ -76,41 +77,41 @@ export default class ChessBoard extends Component {
 
   isIllegalStraight(row, col) {
     if (
-      !(row === this.state.clickedCoordinates[0]) &&
-      !(col === this.state.clickedCoordinates[1])
+      !(row === this.state.selectedRow) &&
+      !(col === this.state.selectedCol)
     ) {
       return false;
     }
     let isIllegalStraight = false;
-    if (row === this.state.clickedCoordinates[0]) {
-      if (this.state.clickedCoordinates[1] < col) {
-        for (let i = 1; i < col - this.state.clickedCoordinates[1]; i++) {
+    if (row === this.state.selectedRow) {
+      if (this.state.selectedCol < col) {
+        for (let i = 1; i < col - this.state.selectedCol; i++) {
           console.log("to the right");
-          if (!this.isEmptySquare(row, this.state.clickedCoordinates[1] + i)) {
+          if (!this.isEmptySquare(row, this.state.selectedCol + i)) {
             isIllegalStraight = true;
           }
         }
       } else {
         console.log("to the here");
-        for (let i = 1; i < this.state.clickedCoordinates[1] - col; i++) {
+        for (let i = 1; i < this.state.selectedCol - col; i++) {
           console.log("to the left");
-          if (!this.isEmptySquare(row, this.state.clickedCoordinates[1] - i)) {
+          if (!this.isEmptySquare(row, this.state.selectedCol - i)) {
             isIllegalStraight = true;
           }
         }
       }
     } else {
-      if (this.state.clickedCoordinates[0] < row) {
-        for (let i = 1; i < row - this.state.clickedCoordinates[0]; i++) {
+      if (this.state.selectedRow < row) {
+        for (let i = 1; i < row - this.state.selectedRow; i++) {
           console.log("down");
-          if (!this.isEmptySquare(this.state.clickedCoordinates[0] + i, col)) {
+          if (!this.isEmptySquare(this.state.selectedRow + i, col)) {
             isIllegalStraight = true;
           }
         }
       } else {
-        for (let i = 1; i < this.state.clickedCoordinates[0] - row; i++) {
+        for (let i = 1; i < this.state.selectedRow - row; i++) {
           console.log("up");
-          if (!this.isEmptySquare(this.state.clickedCoordinates[0] - i, col)) {
+          if (!this.isEmptySquare(this.state.selectedRow - i, col)) {
             isIllegalStraight = true;
           }
         }
@@ -120,27 +121,24 @@ export default class ChessBoard extends Component {
   }
 
   isIlegalSlant(row, col) {
-    if (
-      row === this.state.clickedCoordinates[0] ||
-      col === this.state.clickedCoordinates[1]
-    ) {
+    if (row === this.state.selectedRow || col === this.state.selectedCol) {
       return false;
     }
     let isIlegalJump = false;
-    if (this.state.clickedCoordinates[0] < row) {
-      if (this.state.clickedCoordinates[1] < col) {
-        for (let i = 1; i < row - this.state.clickedCoordinates[0]; i++) {
+    if (this.state.selectedRow < row) {
+      if (this.state.selectedCol < col) {
+        for (let i = 1; i < row - this.state.selectedRow; i++) {
           console.log("down to right");
           if (
             this.isValidCoordinates(
-              this.state.clickedCoordinates[0] + i,
-              this.state.clickedCoordinates[1] + i
+              this.state.selectedRow + i,
+              this.state.selectedCol + i
             )
           ) {
             if (
               !this.isEmptySquare(
-                this.state.clickedCoordinates[0] + i,
-                this.state.clickedCoordinates[1] + i
+                this.state.selectedRow + i,
+                this.state.selectedCol + i
               )
             ) {
               isIlegalJump = true;
@@ -148,18 +146,18 @@ export default class ChessBoard extends Component {
           }
         }
       } else {
-        for (let i = 1; i < row - this.state.clickedCoordinates[0]; i++) {
+        for (let i = 1; i < row - this.state.selectedRow; i++) {
           console.log("down to left");
           if (
             this.isValidCoordinates(
-              this.state.clickedCoordinates[0] + i,
-              this.state.clickedCoordinates[1] - i
+              this.state.selectedRow + i,
+              this.state.selectedCol - i
             )
           ) {
             if (
               !this.isEmptySquare(
-                this.state.clickedCoordinates[0] + i,
-                this.state.clickedCoordinates[1] - i
+                this.state.selectedRow + i,
+                this.state.selectedCol - i
               )
             ) {
               isIlegalJump = true;
@@ -168,19 +166,19 @@ export default class ChessBoard extends Component {
         }
       }
     } else {
-      if (this.state.clickedCoordinates[1] < col) {
-        for (let i = 1; i < this.state.clickedCoordinates[0] - row; i++) {
+      if (this.state.selectedCol < col) {
+        for (let i = 1; i < this.state.selectedRow - row; i++) {
           console.log("up to right");
           if (
             this.isValidCoordinates(
-              this.state.clickedCoordinates[0] - i,
-              this.state.clickedCoordinates[1] + i
+              this.state.selectedRow - i,
+              this.state.selectedCol + i
             )
           ) {
             if (
               !this.isEmptySquare(
-                this.state.clickedCoordinates[0] - i,
-                this.state.clickedCoordinates[1] + i
+                this.state.selectedRow - i,
+                this.state.selectedCol + i
               )
             ) {
               isIlegalJump = true;
@@ -188,18 +186,18 @@ export default class ChessBoard extends Component {
           }
         }
       } else {
-        for (let i = 1; i < this.state.clickedCoordinates[0] - row; i++) {
+        for (let i = 1; i < this.state.selectedRow - row; i++) {
           console.log("up to left");
           if (
             this.isValidCoordinates(
-              this.state.clickedCoordinates[0] - i,
-              this.state.clickedCoordinates[1] - i
+              this.state.selectedRow - i,
+              this.state.selectedCol - i
             )
           ) {
             if (
               !this.isEmptySquare(
-                this.state.clickedCoordinates[0] - i,
-                this.state.clickedCoordinates[1] - i
+                this.state.selectedRow - i,
+                this.state.selectedCol - i
               )
             ) {
               isIlegalJump = true;
@@ -217,7 +215,7 @@ export default class ChessBoard extends Component {
     let isIllegalSlant = this.isIlegalSlant(row, col);
     let isIllegalStraight = this.isIllegalStraight(row, col);
     if (containsMove && !isSameColor && !isIllegalSlant && !isIllegalStraight) {
-      this.setState({ isClicked: false });
+      this.setState({ isSelected: false });
       return true;
     } else {
       return false;
@@ -226,10 +224,7 @@ export default class ChessBoard extends Component {
 
   isDifferentSquare(row, col) {
     let isDifferentSquare = true;
-    if (
-      row == this.state.clickedCoordinates[0] &&
-      col == this.state.clickedCoordinates[1]
-    ) {
+    if (row == this.state.selectedRow && col == this.state.selectedCol) {
       isDifferentSquare = false;
     }
     return isDifferentSquare;
@@ -249,9 +244,8 @@ export default class ChessBoard extends Component {
     if (!this.isEmptySquare(row, col)) {
       if (
         this.state.grid[row][col].Node.props.piece.props.color ===
-        this.state.grid[this.state.clickedCoordinates[0]][
-          this.state.clickedCoordinates[1]
-        ].Node.props.piece.props.color
+        this.state.grid[this.state.selectedRow][this.state.selectedCol].Node
+          .props.piece.props.color
       ) {
         return true;
       }
@@ -260,10 +254,10 @@ export default class ChessBoard extends Component {
 
   move(row, col) {
     let currentAvailableMoves = this.state.availableMoves;
-    if (this.state.clickedPieceName === "Pawn") {
+    if (this.state.selectedPieceName === "Pawn") {
       this.checkPawnTake(
-        this.state.clickedCoordinates[0],
-        this.state.clickedCoordinates[1],
+        this.state.selectedRow,
+        this.state.selectedCol,
         this.state.availableMoves
       );
     }
@@ -272,8 +266,8 @@ export default class ChessBoard extends Component {
     }
     let newGrid = this.state.grid.slice();
     let pieceToMove = this.getPiece(
-      this.state.clickedCoordinates[0],
-      this.state.clickedCoordinates[1]
+      this.state.selectedRow,
+      this.state.selectedCol
     );
     let newPiece = <BlankSquare></BlankSquare>;
 
@@ -282,14 +276,14 @@ export default class ChessBoard extends Component {
       col,
       this.createNode(row, col, pieceToMove, false)
     );
-    newGrid[this.state.clickedCoordinates[0]][
-      this.state.clickedCoordinates[1]
+    newGrid[this.state.selectedRow][
+      this.state.selectedCol
     ] = this.createChessSquare(
-      this.state.clickedCoordinates[0],
-      this.state.clickedCoordinates[1],
+      this.state.selectedRow,
+      this.state.selectedCol,
       this.createNode(
-        this.state.clickedCoordinates[0],
-        this.state.clickedCoordinates[1],
+        this.state.selectedRow,
+        this.state.selectedCol,
         newPiece,
         false
       )
@@ -299,22 +293,23 @@ export default class ChessBoard extends Component {
   }
 
   handleMouseDown(row, col) {
-    if (this.state.isClicked) {
+    if (this.state.isSelected) {
       this.move(row, col);
       this.setState({
         mouseIsPressed: true,
       });
       if (!this.isDifferentSquare(row, col)) {
-        this.setState({ isClicked: false });
+        this.setState({ isSelected: false });
       }
     } else {
       if (!this.isEmptySquare(row, col)) {
         this.setState({
-          clickedCoordinates: [row, col],
-          clickedPieceName: this.getPieceName(row, col),
-          clickedNode: this.getNode(row, col),
+          selectedRow: row,
+          selectedCol: col,
+          selectedPieceName: this.getPieceName(row, col),
+          selctedNode: this.getNode(row, col),
           mouseIsPressed: true,
-          isClicked: true,
+          isSelected: true,
         });
         this.updatePiece(row, col);
       }
@@ -390,7 +385,7 @@ export default class ChessBoard extends Component {
     );
   }
 
-  // setClickedNodeWhite(row, col) {
+  // setSelectedNodeWhite(row, col) {
   //   let newGrid = this.state.grid.slice();
   //   let piece = this.getPiece(row, col);
   //   newGrid[row][col] = this.createChessSquare(
@@ -465,7 +460,7 @@ export default class ChessBoard extends Component {
         col={col}
         color={color}
         changeAvailableMoves={this.changeAvailableMoves.bind(this)}
-        getClickedCoordinates={this.getClickedCoordinates.bind(this)}
+        getSelectedCoordinates={this.getSelectedCoordinates.bind(this)}
         isInStartingState={isInStartingState}
       ></Pawn>
     );
@@ -478,7 +473,7 @@ export default class ChessBoard extends Component {
         col={col}
         color={color}
         changeAvailableMoves={this.changeAvailableMoves.bind(this)}
-        getClickedCoordinates={this.getClickedCoordinates.bind(this)}
+        getSelectedCoordinates={this.getSelectedCoordinates.bind(this)}
       ></Knight>
     );
   }
@@ -490,7 +485,7 @@ export default class ChessBoard extends Component {
         col={col}
         color={color}
         changeAvailableMoves={this.changeAvailableMoves.bind(this)}
-        getClickedCoordinates={this.getClickedCoordinates.bind(this)}
+        getSelectedCoordinates={this.getSelectedCoordinates.bind(this)}
       ></Bishop>
     );
   }
@@ -502,7 +497,7 @@ export default class ChessBoard extends Component {
         col={col}
         color={color}
         changeAvailableMoves={this.changeAvailableMoves.bind(this)}
-        getClickedCoordinates={this.getClickedCoordinates.bind(this)}
+        getSelectedCoordinates={this.getSelectedCoordinates.bind(this)}
       ></Rook>
     );
   }
@@ -514,7 +509,7 @@ export default class ChessBoard extends Component {
         col={col}
         color={color}
         changeAvailableMoves={this.changeAvailableMoves.bind(this)}
-        getClickedCoordinates={this.getClickedCoordinates.bind(this)}
+        selectedCoordinates={this.getSelectedCoordinates.bind(this)}
       ></Queen>
     );
   }
@@ -526,7 +521,7 @@ export default class ChessBoard extends Component {
         col={col}
         color={color}
         changeAvailableMoves={this.changeAvailableMoves.bind(this)}
-        getClickedCoordinates={this.getClickedCoordinates.bind(this)}
+        getSelectedCoordinates={this.getSelectedCoordinates.bind(this)}
       ></King>
     );
   }
@@ -547,8 +542,8 @@ export default class ChessBoard extends Component {
     return this.state.grid[row][col].Node.props.piece;
   }
 
-  getClickedCoordinates() {
-    return this.state.clickedCoordinates;
+  getSelectedCoordinates() {
+    return [this.state.selectedRow, this.state.selectedCol];
   }
 
   getPieceName(row, col) {
