@@ -8,6 +8,9 @@ import Queen from "../Node/Pieces/Queen";
 import Bishop from "../Node/Pieces/Bishop";
 import Knight from "../Node/Pieces/Knight";
 import BlankSquare from "../Node/Pieces/BlankSquare";
+import Modal from "react-modal";
+import whiteQueen from "../Node/Pieces/whiteQueen.svg";
+import whiteKnight from "../Node/Pieces/whiteKnight.svg";
 
 export default class ChessBoard extends Component {
   constructor() {
@@ -23,6 +26,8 @@ export default class ChessBoard extends Component {
       whiteCanCastle: true,
       selectedRow: undefined,
       selectedCol: undefined,
+      pawnPromotionCoordinates: undefined,
+      pawnPromotionModalOpen: false,
     };
   }
 
@@ -54,13 +59,24 @@ export default class ChessBoard extends Component {
       this.state.selectedRow,
       this.state.selectedCol
     );
-    let newPiece = <BlankSquare></BlankSquare>;
-
+    if (
+      this.getPieceName(this.state.selectedRow, this.state.selectedCol) ===
+      "Pawn"
+    ) {
+      if (row === 0 || row === 7) {
+        this.setState({
+          pawnPromotionCoordinates: [row, col],
+          pawnPromotionModalOpen: true,
+        });
+      }
+    }
     newGrid[row][col] = this.createChessSquare(
       row,
       col,
       this.createNode(row, col, pieceToMove, false)
     );
+
+    let newPiece = <BlankSquare></BlankSquare>;
     newGrid[this.state.selectedRow][
       this.state.selectedCol
     ] = this.createChessSquare(
@@ -85,20 +101,36 @@ export default class ChessBoard extends Component {
             this.state.selectedRow,
             this.state.selectedCol
           );
-          this.setState(
-            {
+          if (
+            this.getPieceColor(
+              this.state.selectedRow,
+              this.state.selectedCol
+            ) !== this.getPieceColor(row, col)
+          ) {
+            this.setState({
               selectedRow: row,
               selectedCol: col,
               selectedPieceName: this.getPieceName(row, col),
               selctedNode: this.getNode(row, col),
               mouseIsPressed: true,
               isSelected: true,
-            },
-            () => this.setSelectedNodeWhite(row, col)
-          );
+            });
+          } else {
+            this.setState(
+              {
+                selectedRow: row,
+                selectedCol: col,
+                selectedPieceName: this.getPieceName(row, col),
+                selctedNode: this.getNode(row, col),
+                mouseIsPressed: true,
+                isSelected: true,
+              },
+              () => this.setSelectedNodeWhite(row, col)
+            );
+          }
         }
       }
-      let move = this.move(row, col);
+      this.move(row, col);
       this.setState({
         mouseIsPressed: true,
       });
@@ -129,20 +161,98 @@ export default class ChessBoard extends Component {
     this.setState({ mouseIsPressed: false });
   }
 
+  pawnPromoteQueen(pawnPromotionCoordinates) {
+    if (pawnPromotionCoordinates[0] === 0) {
+      var color = "white";
+    } else {
+      color = "black";
+    }
+    let newGrid = this.state.grid.slice();
+    newGrid[pawnPromotionCoordinates[0]][
+      pawnPromotionCoordinates[1]
+    ] = this.createChessSquare(
+      pawnPromotionCoordinates[0],
+      pawnPromotionCoordinates[1],
+      this.createNode(
+        pawnPromotionCoordinates[0],
+        pawnPromotionCoordinates[1],
+        this.createKing(
+          pawnPromotionCoordinates[0],
+          pawnPromotionCoordinates[1],
+          color
+        ),
+        false
+      )
+    );
+    this.setState({ grid: newGrid, pawnPromotionModalOpen: false });
+  }
+
+  pawnPromoteKnight(pawnPromotionCoordinates) {
+    if (pawnPromotionCoordinates[0] === 0) {
+      var color = "white";
+    } else {
+      color = "black";
+    }
+    let newGrid = this.state.grid.slice();
+    newGrid[pawnPromotionCoordinates[0]][
+      pawnPromotionCoordinates[1]
+    ] = this.createChessSquare(
+      pawnPromotionCoordinates[0],
+      pawnPromotionCoordinates[1],
+      this.createNode(
+        pawnPromotionCoordinates[0],
+        pawnPromotionCoordinates[1],
+        this.createKnight(
+          pawnPromotionCoordinates[0],
+          pawnPromotionCoordinates[1],
+          color
+        ),
+        false
+      )
+    );
+    this.setState({ grid: newGrid, pawnPromotionModalOpen: false });
+  }
+
   render() {
     const { grid } = this.state;
     return (
-      <div className="grid">
-        {grid.map((row, rowIdx) => {
-          return (
-            <div key={rowIdx}>
-              {row.map((node) => {
-                const { Node } = node;
-                return Node;
-              })}
-            </div>
-          );
-        })}
+      <div>
+        <Modal isOpen={this.state.pawnPromotionModalOpen}>
+          <div>
+            <img
+              src={whiteQueen}
+              alt=""
+              width="50"
+              height="50"
+              onClick={() =>
+                this.pawnPromoteQueen(this.state.pawnPromotionCoordinates)
+              }
+            ></img>
+          </div>
+          <div>
+            <img
+              src={whiteKnight}
+              alt=""
+              width="50"
+              height="50"
+              onClick={() =>
+                this.pawnPromoteKnight(this.state.pawnPromotionCoordinates)
+              }
+            ></img>
+          </div>
+        </Modal>
+        <div className="grid">
+          {grid.map((row, rowIdx) => {
+            return (
+              <div key={rowIdx}>
+                {row.map((node) => {
+                  const { Node } = node;
+                  return Node;
+                })}
+              </div>
+            );
+          })}
+        </div>
       </div>
     );
   }
@@ -241,7 +351,6 @@ export default class ChessBoard extends Component {
     let newGrid = this.state.grid.slice();
     if (color === "black") {
       if (side === "kingSide") {
-        console.log(this.isEmptySquare(7, 5));
         if (this.isEmptySquare(7, 5) && this.isEmptySquare(7, 6)) {
           newGrid[7][6] = this.createChessSquare(
             7,
@@ -363,15 +472,12 @@ export default class ChessBoard extends Component {
     if (row === this.state.selectedRow) {
       if (this.state.selectedCol < col) {
         for (let i = 1; i < col - this.state.selectedCol; i++) {
-          console.log("to the right");
           if (!this.isEmptySquare(row, this.state.selectedCol + i)) {
             isIllegalStraight = true;
           }
         }
       } else {
-        console.log("to the here");
         for (let i = 1; i < this.state.selectedCol - col; i++) {
-          console.log("to the left");
           if (!this.isEmptySquare(row, this.state.selectedCol - i)) {
             isIllegalStraight = true;
           }
@@ -380,14 +486,12 @@ export default class ChessBoard extends Component {
     } else {
       if (this.state.selectedRow < row) {
         for (let i = 1; i < row - this.state.selectedRow; i++) {
-          console.log("down");
           if (!this.isEmptySquare(this.state.selectedRow + i, col)) {
             isIllegalStraight = true;
           }
         }
       } else {
         for (let i = 1; i < this.state.selectedRow - row; i++) {
-          console.log("up");
           if (!this.isEmptySquare(this.state.selectedRow - i, col)) {
             isIllegalStraight = true;
           }
@@ -405,7 +509,6 @@ export default class ChessBoard extends Component {
     if (this.state.selectedRow < row) {
       if (this.state.selectedCol < col) {
         for (let i = 1; i < row - this.state.selectedRow; i++) {
-          console.log("down to right");
           if (
             this.isValidCoordinates(
               this.state.selectedRow + i,
@@ -424,7 +527,6 @@ export default class ChessBoard extends Component {
         }
       } else {
         for (let i = 1; i < row - this.state.selectedRow; i++) {
-          console.log("down to left");
           if (
             this.isValidCoordinates(
               this.state.selectedRow + i,
@@ -445,7 +547,6 @@ export default class ChessBoard extends Component {
     } else {
       if (this.state.selectedCol < col) {
         for (let i = 1; i < this.state.selectedRow - row; i++) {
-          console.log("up to right");
           if (
             this.isValidCoordinates(
               this.state.selectedRow - i,
@@ -464,7 +565,6 @@ export default class ChessBoard extends Component {
         }
       } else {
         for (let i = 1; i < this.state.selectedRow - row; i++) {
-          console.log("up to left");
           if (
             this.isValidCoordinates(
               this.state.selectedRow - i,

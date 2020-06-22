@@ -26,7 +26,6 @@ export default class Pawn extends Component {
     return availableMoves;
   };
   render() {
-    console.log(this.props.isInStartingState);
     if (this.props.color === "black") {
       var source = blackPawn;
     } else {

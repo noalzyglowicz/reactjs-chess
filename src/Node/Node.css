@@ -33,8 +33,8 @@
 .isClicked {
   width: 50px;
   height: 50px;
-  background-color: rgb(100, 100, 100);
-  outline: 1px solid rgb(100, 100, 100);
+  background-color: rgb(193, 192, 192);
+  outline: 1px solid rgb(193, 192, 192);
   display: inline-block;
 }
 
