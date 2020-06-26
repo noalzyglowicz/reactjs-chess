@@ -52,12 +52,6 @@ export default class ChessBoard extends Component {
     };
   }
 
-  // isValidEnPassantMove(row, col, enPassantMoves){
-  //   if(containsMove(row, col, enPass)){
-  //     perform the enPassant move by rearranging the pieces
-  //   }
-  // }
-
   move(row, col) {
     let newGrid = this.state.grid.slice();
     let currentAvailableMoves = this.state.availableMoves;
