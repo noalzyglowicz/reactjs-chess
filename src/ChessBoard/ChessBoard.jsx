@@ -139,17 +139,14 @@ export default class ChessBoard extends Component {
               this.state.selectedCol
             ) !== this.getPieceColor(row, col)
           ) {
-            this.setState(
-              {
-                selectedRow: row,
-                selectedCol: col,
-                selectedPieceName: this.getPieceName(row, col),
-                selctedNode: this.getNode(row, col),
-                mouseIsPressed: true,
-                isSelected: true,
-              },
-              () => this.setSelectedNodeWhite(row, col)
-            );
+            this.setState({
+              selectedRow: row,
+              selectedCol: col,
+              selectedPieceName: this.getPieceName(row, col),
+              selctedNode: this.getNode(row, col),
+              mouseIsPressed: true,
+              isSelected: true,
+            });
           } else {
             this.setState(
               {
@@ -446,8 +443,6 @@ export default class ChessBoard extends Component {
   }
 
   updatePawnPromotionState(row, col) {
-    console.log("here");
-    console.log(this.state.selectedPieceName);
     if (this.state.selectedPieceName === "Pawn") {
       if (row === 0 || row === 7) {
         this.setState({
