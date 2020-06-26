@@ -18,6 +18,7 @@ export default class ChessBoard extends Component {
     this.state = {
       grid: [],
       mouseIsPressed: false,
+      turn: "white",
       isSelected: false,
       selectedNode: undefined,
       selectedPieceName: undefined,
@@ -28,48 +29,79 @@ export default class ChessBoard extends Component {
       selectedCol: undefined,
       pawnPromotionCoordinates: undefined,
       pawnPromotionModalOpen: false,
+      blackEnPassant: [
+        [false, false],
+        [false, false],
+        [false, false],
+        [false, false],
+        [false, false],
+        [false, false],
+        [false, false],
+        [false, false],
+      ],
+      whiteEnPassant: [
+        [false, false],
+        [false, false],
+        [false, false],
+        [false, false],
+        [false, false],
+        [false, false],
+        [false, false],
+        [false, false],
+      ],
     };
   }
 
+  // isValidEnPassantMove(row, col, enPassantMoves){
+  //   if(containsMove(row, col, enPass)){
+  //     perform the enPassant move by rearranging the pieces
+  //   }
+  // }
+
   move(row, col) {
+    let newGrid = this.state.grid.slice();
     let currentAvailableMoves = this.state.availableMoves;
     if (this.state.selectedPieceName === "Pawn") {
       currentAvailableMoves = this.checkPawnTake(
         this.state.selectedRow,
-        this.state.selectedCol
+        this.state.selectedCol,
+        this.getPieceColor(this.state.selectedRow, this.state.selectedCol)
+      );
+      this.updateEnPassantState(row, col);
+      var enPassantMoves = this.addEnPassantMoves(
+        this.state.selectedRow,
+        this.state.selectedCol,
+        this.getPieceColor(this.state.selectedRow, this.state.selectedCol)
       );
     }
-    if (this.state.selectedPieceName === "King") {
-      if (
-        this.canCastle(
-          this.getPieceColor(this.state.selectedRow, this.state.selectedCol)
-        )
-      ) {
-        this.castle(
-          this.getPieceColor(this.state.selectedRow, this.state.selectedCol),
-          this.determineCastleSide(col)
-        );
-      }
-    }
-    if (!this.validMove(row, col, currentAvailableMoves)) {
+    this.ifCastle(col);
+    if (this.state.availableMoves == []) {
       return false;
     }
-    let newGrid = this.state.grid.slice();
+    if (!this.isValidMove(row, col, currentAvailableMoves)) {
+      let validMove = false;
+      if (enPassantMoves == undefined) {
+        return false;
+      }
+      if (this.containsMove(row, col, enPassantMoves)) {
+        let newPiece = <BlankSquare></BlankSquare>;
+        newGrid[this.state.selectedRow][col] = this.createChessSquare(
+          this.state.selectedRow,
+          col,
+          this.createNode(this.state.selectedRow, col, newPiece, false)
+        );
+        validMove = true;
+      }
+      if (!validMove) {
+        return false;
+      }
+    }
+    this.updatePawnPromotionState(row, col);
+
     let pieceToMove = this.getPiece(
       this.state.selectedRow,
       this.state.selectedCol
     );
-    if (
-      this.getPieceName(this.state.selectedRow, this.state.selectedCol) ===
-      "Pawn"
-    ) {
-      if (row === 0 || row === 7) {
-        this.setState({
-          pawnPromotionCoordinates: [row, col],
-          pawnPromotionModalOpen: true,
-        });
-      }
-    }
     newGrid[row][col] = this.createChessSquare(
       row,
       col,
@@ -107,14 +139,17 @@ export default class ChessBoard extends Component {
               this.state.selectedCol
             ) !== this.getPieceColor(row, col)
           ) {
-            this.setState({
-              selectedRow: row,
-              selectedCol: col,
-              selectedPieceName: this.getPieceName(row, col),
-              selctedNode: this.getNode(row, col),
-              mouseIsPressed: true,
-              isSelected: true,
-            });
+            this.setState(
+              {
+                selectedRow: row,
+                selectedCol: col,
+                selectedPieceName: this.getPieceName(row, col),
+                selctedNode: this.getNode(row, col),
+                mouseIsPressed: true,
+                isSelected: true,
+              },
+              () => this.setSelectedNodeWhite(row, col)
+            );
           } else {
             this.setState(
               {
@@ -161,60 +196,9 @@ export default class ChessBoard extends Component {
     this.setState({ mouseIsPressed: false });
   }
 
-  pawnPromoteQueen(pawnPromotionCoordinates) {
-    if (pawnPromotionCoordinates[0] === 0) {
-      var color = "white";
-    } else {
-      color = "black";
-    }
-    let newGrid = this.state.grid.slice();
-    newGrid[pawnPromotionCoordinates[0]][
-      pawnPromotionCoordinates[1]
-    ] = this.createChessSquare(
-      pawnPromotionCoordinates[0],
-      pawnPromotionCoordinates[1],
-      this.createNode(
-        pawnPromotionCoordinates[0],
-        pawnPromotionCoordinates[1],
-        this.createKing(
-          pawnPromotionCoordinates[0],
-          pawnPromotionCoordinates[1],
-          color
-        ),
-        false
-      )
-    );
-    this.setState({ grid: newGrid, pawnPromotionModalOpen: false });
-  }
-
-  pawnPromoteKnight(pawnPromotionCoordinates) {
-    if (pawnPromotionCoordinates[0] === 0) {
-      var color = "white";
-    } else {
-      color = "black";
-    }
-    let newGrid = this.state.grid.slice();
-    newGrid[pawnPromotionCoordinates[0]][
-      pawnPromotionCoordinates[1]
-    ] = this.createChessSquare(
-      pawnPromotionCoordinates[0],
-      pawnPromotionCoordinates[1],
-      this.createNode(
-        pawnPromotionCoordinates[0],
-        pawnPromotionCoordinates[1],
-        this.createKnight(
-          pawnPromotionCoordinates[0],
-          pawnPromotionCoordinates[1],
-          color
-        ),
-        false
-      )
-    );
-    this.setState({ grid: newGrid, pawnPromotionModalOpen: false });
-  }
-
   render() {
     const { grid } = this.state;
+    //console.log(this.state.pawnPromotionModalOpen);
     return (
       <div>
         <Modal isOpen={this.state.pawnPromotionModalOpen}>
@@ -276,7 +260,7 @@ export default class ChessBoard extends Component {
     return grid;
   };
 
-  validMove(row, col, availableMoves) {
+  isValidMove(row, col, availableMoves) {
     let containsMove = this.containsMove(row, col, availableMoves);
     let isSameColor = this.isSameColor(row, col);
     if (!(this.state.selectedPieceName === "Knight")) {
@@ -304,9 +288,9 @@ export default class ChessBoard extends Component {
     return containsMove;
   }
 
-  checkPawnTake(row, col) {
+  checkPawnTake(row, col, color) {
     let availableMoves = this.state.availableMoves;
-    if (this.getPieceColor(row, col) === "black") {
+    if (color === "black") {
       if (this.isValidCoordinates(row - 1, col + 1)) {
         if (!this.isEmptySquare(row - 1, col + 1)) {
           if (!this.isSameColor(row - 1, col + 1, this.state)) {
@@ -459,6 +443,170 @@ export default class ChessBoard extends Component {
       }
     }
     this.setState({ grid: newGrid });
+  }
+
+  updatePawnPromotionState(row, col) {
+    console.log("here");
+    console.log(this.state.selectedPieceName);
+    if (this.state.selectedPieceName === "Pawn") {
+      if (row === 0 || row === 7) {
+        this.setState({
+          pawnPromotionCoordinates: [row, col],
+          pawnPromotionModalOpen: true,
+        });
+      }
+    }
+  }
+
+  ifCastle(col) {
+    if (this.state.selectedPieceName === "King") {
+      if (
+        this.canCastle(
+          this.getPieceColor(this.state.selectedRow, this.state.selectedCol)
+        )
+      ) {
+        this.castle(
+          this.getPieceColor(this.state.selectedRow, this.state.selectedCol),
+          this.determineCastleSide(col)
+        );
+      }
+    }
+  }
+
+  // ifEnPassant(col, row) {
+  //   if (color === "black") {
+  //     if(() &&())
+  //   } else {
+  //   }
+  // }
+
+  addEnPassantMoves(row, col, color) {
+    let enPassantMoves = [];
+    if (color === "black") {
+      let currentEnPassant = this.state.whiteEnPassant;
+      if (this.isValidCoordinates(row, col - 1)) {
+        if (currentEnPassant[col - 1][1] === true) {
+          enPassantMoves.push([row - 1, col - 1]);
+        }
+      }
+      if (this.isValidCoordinates(row, col + 1)) {
+        if (currentEnPassant[col + 1][0] === true) {
+          enPassantMoves.push([row - 1, col + 1]);
+        }
+      }
+    } else {
+      let currentEnPassant = this.state.blackEnPassant;
+      if (this.isValidCoordinates(row, col - 1)) {
+        if (currentEnPassant[col - 1][1] === true) {
+          enPassantMoves.push([row + 1, col - 1]);
+        }
+      }
+      if (this.isValidCoordinates(row, col + 1)) {
+        if (currentEnPassant[col + 1][0] === true) {
+          enPassantMoves.push([row + 1, col + 1]);
+        }
+      }
+    }
+    return enPassantMoves;
+  }
+
+  updateEnPassantState(row, col) {
+    if (
+      this.getPieceColor(this.state.selectedRow, this.state.selectedCol) ==
+      "black"
+    ) {
+      if (Math.abs(this.state.selectedRow - row) == 2) {
+        let currentEnPassant = this.state.blackEnPassant;
+        if (this.isValidCoordinates(4, col - 1)) {
+          if (!this.isEmptySquare(4, col - 1)) {
+            currentEnPassant[col][0] = true;
+          }
+        }
+        if (this.isValidCoordinates(3, col - 1)) {
+          if (!this.isEmptySquare(3, col + 1)) {
+            currentEnPassant[col][1] = true;
+          }
+        }
+        this.setState({ blackEnPassant: currentEnPassant });
+      }
+      if (this.state.selectedRow === 4) {
+        let currentEnPassant = this.state.blackEnPassant;
+        currentEnPassant[col] = [false, false];
+        this.setState({ blackEnPassant: currentEnPassant });
+      }
+    } else {
+      if (Math.abs(this.state.selectedRow - row) == 2) {
+        let currentEnPassant = this.state.whiteEnPassant;
+        if (this.isValidCoordinates(3, col - 1)) {
+          if (!this.isEmptySquare(3, col - 1)) {
+            currentEnPassant[col][0] = true;
+          }
+        }
+        if (this.isValidCoordinates(3, col + 1)) {
+          if (!this.isEmptySquare(3, col + 1)) {
+            currentEnPassant[col][1] = true;
+          }
+        }
+        this.setState({ whiteEnPassant: currentEnPassant });
+      }
+      if (this.state.selectedRow === 3) {
+        let currentEnPassant = this.state.whiteEnPassant;
+        currentEnPassant[col] = [false, false];
+        this.setState({ whiteEnPassant: currentEnPassant });
+      }
+    }
+  }
+
+  pawnPromoteQueen(pawnPromotionCoordinates) {
+    if (pawnPromotionCoordinates[0] === 0) {
+      var color = "black";
+    } else {
+      color = "white";
+    }
+    let newGrid = this.state.grid.slice();
+    newGrid[pawnPromotionCoordinates[0]][
+      pawnPromotionCoordinates[1]
+    ] = this.createChessSquare(
+      pawnPromotionCoordinates[0],
+      pawnPromotionCoordinates[1],
+      this.createNode(
+        pawnPromotionCoordinates[0],
+        pawnPromotionCoordinates[1],
+        this.createQueen(
+          pawnPromotionCoordinates[0],
+          pawnPromotionCoordinates[1],
+          color
+        ),
+        false
+      )
+    );
+    this.setState({ grid: newGrid, pawnPromotionModalOpen: false });
+  }
+
+  pawnPromoteKnight(pawnPromotionCoordinates) {
+    if (pawnPromotionCoordinates[0] === 0) {
+      var color = "black";
+    } else {
+      color = "white";
+    }
+    let newGrid = this.state.grid.slice();
+    newGrid[pawnPromotionCoordinates[0]][
+      pawnPromotionCoordinates[1]
+    ] = this.createChessSquare(
+      pawnPromotionCoordinates[0],
+      pawnPromotionCoordinates[1],
+      this.createNode(
+        pawnPromotionCoordinates[0],
+        pawnPromotionCoordinates[1],
+        this.createKnight(
+          pawnPromotionCoordinates[0],
+          pawnPromotionCoordinates[1],
+          color
+        ),
+        false
+      )
+    );
+    this.setState({ grid: newGrid, pawnPromotionModalOpen: false });
   }
 
   isIllegalStraight(row, col) {
@@ -682,7 +830,7 @@ export default class ChessBoard extends Component {
   updatePiece(row, col) {
     let piece = this.state.grid[row][col].Node.props.piece;
     if (this.getPieceName(row, col) === "Pawn") {
-      var newPiece = this.createPawn(row, col, piece.props.color, false);
+      var newPiece = this.createPawn(row, col, piece.props.color, false, false);
     } else if (this.getPieceName(row, col) === "Rook") {
       newPiece = this.createRook(row, col, piece.props.color);
     } else if (this.getPieceName(row, col) === "Knight") {
@@ -707,7 +855,7 @@ export default class ChessBoard extends Component {
 
   getStartingPiece(row, col) {
     if (row === 1) {
-      var piece = this.createPawn(row, col, "white", true);
+      var piece = this.createPawn(row, col, "white", true, false);
     } else if (row === 0 && (col === 0 || col === 7)) {
       var piece = this.createRook(row, col, "white");
     } else if (row === 0 && (col === 1 || col === 6)) {
@@ -719,7 +867,7 @@ export default class ChessBoard extends Component {
     } else if (row === 0 && col === 4) {
       var piece = this.createKing(row, col, "white");
     } else if (row === 6) {
-      var piece = this.createPawn(row, col, "black", true);
+      var piece = this.createPawn(row, col, "black", true, false);
     } else if (row === 7 && (col === 0 || col === 7)) {
       var piece = this.createRook(row, col, "black");
     } else if (row === 7 && (col === 1 || col === 6)) {
@@ -736,7 +884,7 @@ export default class ChessBoard extends Component {
     return piece;
   }
 
-  createPawn(row, col, color, isInStartingState) {
+  createPawn(row, col, color, isInStartingState, canBeEnPassanted) {
     return (
       <Pawn
         row={row}
@@ -745,6 +893,7 @@ export default class ChessBoard extends Component {
         changeAvailableMoves={this.changeAvailableMoves.bind(this)}
         getSelectedCoordinates={this.getSelectedCoordinates.bind(this)}
         isInStartingState={isInStartingState}
+        canBeEnPassanted={canBeEnPassanted}
       ></Pawn>
     );
   }

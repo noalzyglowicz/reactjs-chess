@@ -7,6 +7,7 @@ export default class Pawn extends Component {
     super(props);
     this.state = {
       isInStartingState: this.props.isInStartingState,
+      canBeEnPassanted: this.props.canBeEnPassanted,
     };
   }
 
