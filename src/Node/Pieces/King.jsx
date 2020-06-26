@@ -3,19 +3,16 @@ import blackKing from "./blackKing.svg";
 import whiteKing from "./whiteKing.svg";
 
 export default class King extends Component {
-  constructor() {
-    super();
-    this.state = {
-      row: 0,
-      col: 0,
-    };
-  }
   getAvailableMoves = (row, col) => {
     let availableMoves = [];
     availableMoves.push([row + 1, col]);
     availableMoves.push([row - 1, col]);
     availableMoves.push([row, col - 1]);
     availableMoves.push([row, col + 1]);
+    availableMoves.push([row + 1, col + 1]);
+    availableMoves.push([row - 1, col - 1]);
+    availableMoves.push([row + 1, col - 1]);
+    availableMoves.push([row - 1, col + 1]);
     return availableMoves;
   };
 
@@ -25,12 +22,7 @@ export default class King extends Component {
     } else {
       var source = whiteKing;
     }
-    let clickedCoordinates = this.props.getClickedCoordinates();
-    var coordinateList = this.getAvailableMoves(
-      clickedCoordinates[0],
-      clickedCoordinates[1]
-    );
-    console.log(clickedCoordinates);
+    var coordinateList = this.getAvailableMoves(this.props.row, this.props.col);
     return (
       <img
         src={source}
