@@ -462,13 +462,6 @@ export default class ChessBoard extends Component {
     }
   }
 
-  // ifEnPassant(col, row) {
-  //   if (color === "black") {
-  //     if(() &&())
-  //   } else {
-  //   }
-  // }
-
   addEnPassantMoves(row, col, color) {
     let enPassantMoves = [];
     if (color === "black") {
@@ -511,7 +504,7 @@ export default class ChessBoard extends Component {
             currentEnPassant[col][0] = true;
           }
         }
-        if (this.isValidCoordinates(3, col - 1)) {
+        if (this.isValidCoordinates(3, col + 1)) {
           if (!this.isEmptySquare(3, col + 1)) {
             currentEnPassant[col][1] = true;
           }
