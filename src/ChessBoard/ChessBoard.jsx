@@ -184,12 +184,12 @@ export default class ChessBoard extends Component {
   }
 
   handleMouseUp() {
+    console.log(this.state.availableMoves);
     this.setState({ mouseIsPressed: false });
   }
 
   render() {
     const { grid } = this.state;
-    //console.log(this.state.pawnPromotionModalOpen);
     return (
       <div>
         <Modal isOpen={this.state.pawnPromotionModalOpen}>
