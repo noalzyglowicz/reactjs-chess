@@ -96,6 +96,7 @@ export default class ChessBoard extends Component {
       this.state.selectedRow,
       this.state.selectedCol
     );
+    this.setSelectedMovesWhite(this.state.availableMoves, false);
     newGrid[row][col] = this.createChessSquare(
       row,
       col,
@@ -123,9 +124,10 @@ export default class ChessBoard extends Component {
     if (this.state.isSelected) {
       if (!(this.state.selectedNode === this.getNode(row, col))) {
         if (!this.isEmptySquare(row, col)) {
-          this.unselectNodeWhite(
+          this.setSelectedNodeWhite(
             this.state.selectedRow,
-            this.state.selectedCol
+            this.state.selectedCol,
+            false
           );
           if (
             this.getPieceColor(
@@ -151,7 +153,7 @@ export default class ChessBoard extends Component {
                 mouseIsPressed: true,
                 isSelected: true,
               },
-              () => this.setSelectedNodeWhite(row, col)
+              () => this.setSelectedNodeWhite(row, col, true)
             );
           }
         }
@@ -162,7 +164,7 @@ export default class ChessBoard extends Component {
       });
       if (!this.isDifferentSquare(row, col)) {
         this.setState({ isSelected: false }, () =>
-          this.unselectNodeWhite(row, col)
+          this.setSelectedNodeWhite(row, col, false)
         );
       }
     } else {
@@ -176,7 +178,7 @@ export default class ChessBoard extends Component {
             mouseIsPressed: true,
             isSelected: true,
           },
-          () => this.setSelectedNodeWhite(row, col)
+          () => this.setSelectedNodeWhite(row, col, true)
         );
       }
     }
@@ -184,7 +186,6 @@ export default class ChessBoard extends Component {
   }
 
   handleMouseUp() {
-    console.log(this.state.availableMoves);
     this.setState({ mouseIsPressed: false });
   }
 
@@ -277,6 +278,16 @@ export default class ChessBoard extends Component {
       }
     }
     return containsMove;
+  }
+
+  indexOfMove(row, col, availableMoves) {
+    let i = 0;
+    for (i; i < availableMoves.length; i++) {
+      if (availableMoves[i][0] == row && availableMoves[i][1] == col) {
+        return i;
+      }
+    }
+    return -1;
   }
 
   checkPawnTake(row, col, color) {
@@ -738,24 +749,13 @@ export default class ChessBoard extends Component {
     return side;
   }
 
-  setSelectedNodeWhite(row, col) {
+  setSelectedNodeWhite(row, col, bool) {
     let newGrid = this.state.grid.slice();
     let piece = this.getPiece(row, col);
     newGrid[row][col] = this.createChessSquare(
       row,
       col,
-      this.createNode(row, col, piece, true)
-    );
-    this.setState({ grid: newGrid });
-  }
-
-  unselectNodeWhite(row, col) {
-    let newGrid = this.state.grid.slice();
-    let piece = this.getPiece(row, col);
-    newGrid[row][col] = this.createChessSquare(
-      row,
-      col,
-      this.createNode(row, col, piece, false)
+      this.createNode(row, col, piece, bool)
     );
     this.setState({ grid: newGrid });
   }
@@ -873,7 +873,6 @@ export default class ChessBoard extends Component {
         col={col}
         color={color}
         changeAvailableMoves={this.changeAvailableMoves.bind(this)}
-        getSelectedCoordinates={this.getSelectedCoordinates.bind(this)}
         isInStartingState={isInStartingState}
         canBeEnPassanted={canBeEnPassanted}
       ></Pawn>
@@ -887,7 +886,6 @@ export default class ChessBoard extends Component {
         col={col}
         color={color}
         changeAvailableMoves={this.changeAvailableMoves.bind(this)}
-        getSelectedCoordinates={this.getSelectedCoordinates.bind(this)}
       ></Knight>
     );
   }
@@ -899,7 +897,6 @@ export default class ChessBoard extends Component {
         col={col}
         color={color}
         changeAvailableMoves={this.changeAvailableMoves.bind(this)}
-        getSelectedCoordinates={this.getSelectedCoordinates.bind(this)}
       ></Bishop>
     );
   }
@@ -911,7 +908,6 @@ export default class ChessBoard extends Component {
         col={col}
         color={color}
         changeAvailableMoves={this.changeAvailableMoves.bind(this)}
-        getSelectedCoordinates={this.getSelectedCoordinates.bind(this)}
       ></Rook>
     );
   }
@@ -923,7 +919,6 @@ export default class ChessBoard extends Component {
         col={col}
         color={color}
         changeAvailableMoves={this.changeAvailableMoves.bind(this)}
-        selectedCoordinates={this.getSelectedCoordinates.bind(this)}
       ></Queen>
     );
   }
@@ -935,7 +930,6 @@ export default class ChessBoard extends Component {
         col={col}
         color={color}
         changeAvailableMoves={this.changeAvailableMoves.bind(this)}
-        getSelectedCoordinates={this.getSelectedCoordinates.bind(this)}
       ></King>
     );
   }
@@ -950,7 +944,35 @@ export default class ChessBoard extends Component {
     }
   }
 
+  setSelectedMovesWhite(moves, bool) {
+    console.log("in setSelectedMovesWhite");
+    let newGrid = this.state.grid.slice();
+    console.log(moves);
+    for (let i = 0; i < moves.length; i++) {
+      if (this.isValidCoordinates(moves[i][0], moves[i][1])) {
+        if (!this.isEmptySquare(moves[i][0], moves[i][1])) {
+          if (this.isSameColor(moves[i][0], moves[i][1])) {
+            moves.splice(i, 1);
+            i = i - 1;
+          }
+        }
+      }
+    }
+    for (let i = 0; i < moves.length; i++) {
+      if (this.isValidCoordinates(moves[i][0], moves[i][1])) {
+        let piece = this.getPiece(moves[i][0], moves[i][1]);
+        newGrid[moves[i][0]][moves[i][1]] = this.createChessSquare(
+          moves[i][0],
+          moves[i][1],
+          this.createNode(moves[i][0], moves[i][1], piece, bool)
+        );
+      }
+    }
+  }
+
   changeAvailableMoves(moves) {
+    //console.log("changeAvailableMoves", moves);
+    this.setSelectedMovesWhite(moves, true);
     this.setState({ availableMoves: moves });
   }
 
