@@ -156,6 +156,7 @@ export default class ChessBoard extends Component {
               () => this.setSelectedNodeWhite(row, col, true)
             );
           }
+          this.setSelectedMovesWhite(this.state.availableMoves, false);
         }
       }
       this.move(row, col);
@@ -945,9 +946,7 @@ export default class ChessBoard extends Component {
   }
 
   setSelectedMovesWhite(moves, bool) {
-    console.log("in setSelectedMovesWhite");
     let newGrid = this.state.grid.slice();
-    console.log(moves);
     for (let i = 0; i < moves.length; i++) {
       if (this.isValidCoordinates(moves[i][0], moves[i][1])) {
         if (!this.isEmptySquare(moves[i][0], moves[i][1])) {
@@ -971,8 +970,13 @@ export default class ChessBoard extends Component {
   }
 
   changeAvailableMoves(moves) {
-    //console.log("changeAvailableMoves", moves);
-    this.setSelectedMovesWhite(moves, true);
+    console.log("here");
+    if (this.state.isSelected) {
+      this.setSelectedMovesWhite(moves, true);
+    }
+    if (!this.state.isSelected) {
+      this.setSelectedMovesWhite(this.state.availableMoves, false);
+    }
     this.setState({ availableMoves: moves });
   }
 
