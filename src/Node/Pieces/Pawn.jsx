@@ -42,7 +42,13 @@ export default class Pawn extends Component {
         width="50"
         height="50"
         className="image"
-        onClick={() => this.props.changeAvailableMoves(coordinateList)}
+        onClick={() =>
+          this.props.changeAvailableMoves(
+            this.props.row,
+            this.props.col,
+            coordinateList
+          )
+        }
       ></img>
     );
   }

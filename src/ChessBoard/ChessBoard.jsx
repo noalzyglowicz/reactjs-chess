@@ -55,20 +55,16 @@ export default class ChessBoard extends Component {
   move(row, col) {
     let newGrid = this.state.grid.slice();
     let currentAvailableMoves = this.state.availableMoves;
+    let enPassantMoves = undefined;
     if (this.state.selectedPieceName === "Pawn") {
-      currentAvailableMoves = this.checkPawnTake(
-        this.state.selectedRow,
-        this.state.selectedCol,
-        this.getPieceColor(this.state.selectedRow, this.state.selectedCol)
-      );
       this.updateEnPassantState(row, col);
-      var enPassantMoves = this.addEnPassantMoves(
+      enPassantMoves = this.addEnPassantMoves(
         this.state.selectedRow,
         this.state.selectedCol,
         this.getPieceColor(this.state.selectedRow, this.state.selectedCol)
       );
     }
-    this.ifCastle(col);
+    this.ifCastle(row, col);
     if (this.state.availableMoves == []) {
       return false;
     }
@@ -291,8 +287,7 @@ export default class ChessBoard extends Component {
     return -1;
   }
 
-  checkPawnTake(row, col, color) {
-    let availableMoves = this.state.availableMoves;
+  checkPawnTake(row, col, availableMoves, color) {
     if (color === "black") {
       if (this.isValidCoordinates(row - 1, col + 1)) {
         if (!this.isEmptySquare(row - 1, col + 1)) {
@@ -459,16 +454,16 @@ export default class ChessBoard extends Component {
     }
   }
 
-  ifCastle(col) {
+  ifCastle(row, col) {
     if (this.state.selectedPieceName === "King") {
       if (
-        this.canCastle(
+        this.checkCastleState(
           this.getPieceColor(this.state.selectedRow, this.state.selectedCol)
         )
       ) {
         this.castle(
           this.getPieceColor(this.state.selectedRow, this.state.selectedCol),
-          this.determineCastleSide(col)
+          this.determineCastleSide(row, col)
         );
       }
     }
@@ -728,7 +723,7 @@ export default class ChessBoard extends Component {
     return isIlegalJump;
   }
 
-  canCastle(color) {
+  checkCastleState(color) {
     if (color === "black") {
       if (this.state.blackCanCastle === true) {
         return true;
@@ -741,8 +736,8 @@ export default class ChessBoard extends Component {
     return false;
   }
 
-  determineCastleSide(col) {
-    if (col === 6) {
+  determineCastleSide(row, col) {
+    if (col === 6 && (row === 7 || row === 0)) {
       var side = "kingSide";
     } else {
       side = "queenSide";
@@ -945,6 +940,37 @@ export default class ChessBoard extends Component {
     }
   }
 
+  updateCastleMoves(moves) {
+    let color = this.getPieceColor(
+      this.state.selectedRow,
+      this.state.selectedCol
+    );
+    if (this.checkCastleState(color)) {
+      if (color === "black") {
+        if (this.isEmptySquare(7, 5) && this.isEmptySquare(7, 6)) {
+          moves.push([7, 6]);
+        } else if (
+          this.isEmptySquare(7, 1) &&
+          this.isEmptySquare(7, 2) &&
+          this.isEmptySquare(7, 3)
+        ) {
+          moves.push([7, 1]);
+        }
+      } else {
+        if (this.isEmptySquare(0, 5) && this.isEmptySquare(0, 6)) {
+          moves.push([0, 6]);
+        } else if (
+          this.isEmptySquare(0, 1) &&
+          this.isEmptySquare(0, 2) &&
+          this.isEmptySquare(0, 3)
+        ) {
+          moves.push([0, 1]);
+        }
+      }
+    }
+    return moves;
+  }
+
   setSelectedMovesWhite(moves, bool) {
     let newGrid = this.state.grid.slice();
     for (let i = 0; i < moves.length; i++) {
@@ -957,6 +983,27 @@ export default class ChessBoard extends Component {
         }
       }
     }
+    console.log(moves);
+    if (this.state.selectedPieceName === "Pawn") {
+      moves = this.checkPawnTake(
+        this.state.selectedRow,
+        this.state.selectedCol,
+        moves,
+        this.getPieceColor(this.state.selectedRow, this.state.selectedCol)
+      );
+      let enPassantMoves = this.addEnPassantMoves(
+        this.state.selectedRow,
+        this.state.selectedCol,
+        this.getPieceColor(this.state.selectedRow, this.state.selectedCol)
+      );
+      for (let i = 0; i < enPassantMoves.length; i++) {
+        moves.push(enPassantMoves[i]);
+      }
+    }
+    if (this.state.selectedPieceName === "King") {
+      moves = this.updateCastleMoves(moves);
+    }
+    console.log(moves);
     for (let i = 0; i < moves.length; i++) {
       if (this.isValidCoordinates(moves[i][0], moves[i][1])) {
         let piece = this.getPiece(moves[i][0], moves[i][1]);
@@ -969,8 +1016,7 @@ export default class ChessBoard extends Component {
     }
   }
 
-  changeAvailableMoves(moves) {
-    console.log("here");
+  changeAvailableMoves(row, col, moves) {
     if (this.state.isSelected) {
       this.setSelectedMovesWhite(moves, true);
     }
