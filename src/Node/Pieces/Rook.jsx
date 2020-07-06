@@ -25,13 +25,7 @@ export default class Rook extends Component {
         width="50"
         height="50"
         className="image"
-        onClick={() =>
-          this.props.changeAvailableMoves(
-            this.props.row,
-            this.props.col,
-            coordinateList
-          )
-        }
+        onClick={() => this.props.changeAvailableMoves(coordinateList)}
       ></img>
     );
   }

@@ -68,11 +68,19 @@ export default class ChessBoard extends Component {
     if (this.state.availableMoves == []) {
       return false;
     }
-    if (!this.isValidMove(row, col, currentAvailableMoves)) {
-      let validMove = false;
-      if (enPassantMoves == undefined) {
-        return false;
-      }
+    //console.log(currentAvailableMoves);
+    currentAvailableMoves = this.isValidMove(currentAvailableMoves);
+    //if (!this.isValidMove(row, col, currentAvailableMoves)) {
+    let validMove = false;
+    // if (enPassantMoves == undefined) {
+    //   return false;
+    // }
+    //console.log(currentAvailableMoves);
+    console.log(this.state.selectedPieceName);
+    if (this.containsMove(row, col, currentAvailableMoves)) {
+      validMove = true;
+    }
+    if (!(enPassantMoves == undefined)) {
       if (this.containsMove(row, col, enPassantMoves)) {
         let newPiece = <BlankSquare></BlankSquare>;
         newGrid[this.state.selectedRow][col] = this.createChessSquare(
@@ -82,10 +90,14 @@ export default class ChessBoard extends Component {
         );
         validMove = true;
       }
-      if (!validMove) {
-        return false;
-      }
     }
+    //console.log()
+    if (!validMove) {
+      //console.log("invalid move");
+      return false;
+    }
+    //}
+    this.setState({ isSelected: false });
     this.updatePawnPromotionState(row, col);
 
     let pieceToMove = this.getPiece(
@@ -249,22 +261,48 @@ export default class ChessBoard extends Component {
     return grid;
   };
 
-  isValidMove(row, col, availableMoves) {
-    let containsMove = this.containsMove(row, col, availableMoves);
-    let isSameColor = this.isSameColor(row, col);
-    if (!(this.state.selectedPieceName === "Knight")) {
-      let isIllegalSlant = this.isIlegalSlant(row, col);
-      let isIllegalStraight = this.isIllegalStraight(row, col);
-      if (isIllegalSlant || isIllegalStraight) {
-        return false;
+  isValidMove(availableMoves) {
+    //let containsMove = this.containsMove(row, col, availableMoves);
+    //let isSameColor = this.isSameColor(row, col);
+    // if (this.isSameColor(row, col)) {
+    //   let i = this.indexOfMove(row, col, availableMoves);
+    //   availableMoves.splice(i, 1);
+    // }
+    for (let i = 0; i < availableMoves.length; i++) {
+      if (
+        !this.isValidCoordinates(availableMoves[i][0], availableMoves[i][1])
+      ) {
+        availableMoves.splice(i, 1);
+        i = i - 1;
       }
     }
-    if (containsMove && !isSameColor) {
-      this.setState({ isSelected: false });
-      return true;
-    } else {
-      return false;
+    if (
+      !(
+        this.state.selectedPieceName === "Knight" ||
+        this.state.selectedPieceName === "Pawn"
+      )
+    ) {
+      // let isIllegalSlant = this.isIllegalSlant(row, col);
+      // let isIllegalStraight = this.isIllegalStraight(row, col);
+      //console.log(availableMoves);
+      console.log(availableMoves);
+      availableMoves = this.isIllegalSlant(availableMoves);
+      console.log(availableMoves);
+      //console.log(availableMoves);
+      if (!(this.state.selectedPieceName === "Bishop")) {
+        availableMoves = this.isIllegalStraight(availableMoves);
+      }
+      // if (isIllegalSlant || isIllegalStraight) {
+      //   return false;
+      // }
     }
+    // if (containsMove && !isSameColor) {
+    //   this.setState({ isSelected: false });
+    //   return true;
+    // } else {
+    //   return false;
+    // }
+    return availableMoves;
   }
 
   containsMove(row, col, availableMoves) {
@@ -598,129 +636,236 @@ export default class ChessBoard extends Component {
     this.setState({ grid: newGrid, pawnPromotionModalOpen: false });
   }
 
-  isIllegalStraight(row, col) {
-    if (
-      !(row === this.state.selectedRow) &&
-      !(col === this.state.selectedCol)
-    ) {
-      return false;
-    }
-    let isIllegalStraight = false;
-    if (row === this.state.selectedRow) {
-      if (this.state.selectedCol < col) {
-        for (let i = 1; i < col - this.state.selectedCol; i++) {
-          if (!this.isEmptySquare(row, this.state.selectedCol + i)) {
-            isIllegalStraight = true;
-          }
-        }
-      } else {
-        for (let i = 1; i < this.state.selectedCol - col; i++) {
-          if (!this.isEmptySquare(row, this.state.selectedCol - i)) {
-            isIllegalStraight = true;
-          }
+  isIllegalStraight(availableMoves) {
+    let isIllegalJump = false;
+    for (let i = 1; i <= 7; i++) {
+      if (isIllegalJump) {
+        let idx = this.indexOfMove(
+          this.state.selectedRow,
+          this.state.selectedCol + i,
+          availableMoves
+        );
+        if (idx !== -1) {
+          availableMoves.splice(idx, 1);
         }
       }
-    } else {
-      if (this.state.selectedRow < row) {
-        for (let i = 1; i < row - this.state.selectedRow; i++) {
-          if (!this.isEmptySquare(this.state.selectedRow + i, col)) {
-            isIllegalStraight = true;
-          }
-        }
-      } else {
-        for (let i = 1; i < this.state.selectedRow - row; i++) {
-          if (!this.isEmptySquare(this.state.selectedRow - i, col)) {
-            isIllegalStraight = true;
-          }
+      if (
+        this.isValidCoordinates(
+          this.state.selectedRow,
+          this.state.selectedCol + i
+        )
+      ) {
+        if (
+          !this.isEmptySquare(
+            this.state.selectedRow,
+            this.state.selectedCol + i
+          )
+        ) {
+          isIllegalJump = true;
         }
       }
     }
-    return isIllegalStraight;
+    isIllegalJump = false;
+    for (let i = 1; i <= 7; i++) {
+      if (isIllegalJump) {
+        let idx = this.indexOfMove(
+          this.state.selectedRow,
+          this.state.selectedCol - i,
+          availableMoves
+        );
+        if (idx !== -1) {
+          availableMoves.splice(idx, 1);
+        }
+      }
+      if (
+        this.isValidCoordinates(
+          this.state.selectedRow,
+          this.state.selectedCol - i
+        )
+      ) {
+        if (
+          !this.isEmptySquare(
+            this.state.selectedRow,
+            this.state.selectedCol - i
+          )
+        ) {
+          isIllegalJump = true;
+        }
+      }
+    }
+    isIllegalJump = false;
+    for (let i = 1; i <= 7; i++) {
+      if (isIllegalJump) {
+        let idx = this.indexOfMove(
+          this.state.selectedRow + i,
+          this.state.selectedCol,
+          availableMoves
+        );
+        if (idx !== -1) {
+          availableMoves.splice(idx, 1);
+        }
+      }
+      if (
+        this.isValidCoordinates(
+          this.state.selectedRow + i,
+          this.state.selectedCol
+        )
+      ) {
+        if (
+          !this.isEmptySquare(
+            this.state.selectedRow + i,
+            this.state.selectedCol
+          )
+        ) {
+          isIllegalJump = true;
+        }
+      }
+    }
+    isIllegalJump = false;
+    for (let i = 1; i <= 7; i++) {
+      if (isIllegalJump) {
+        let idx = this.indexOfMove(
+          this.state.selectedRow - i,
+          this.state.selectedCol,
+          availableMoves
+        );
+        if (idx !== -1) {
+          availableMoves.splice(idx, 1);
+        }
+      }
+      if (
+        this.isValidCoordinates(
+          this.state.selectedRow - i,
+          this.state.selectedCol
+        )
+      ) {
+        if (
+          !this.isEmptySquare(
+            this.state.selectedRow - i,
+            this.state.selectedCol
+          )
+        ) {
+          isIllegalJump = true;
+        }
+      }
+    }
+    return availableMoves;
   }
 
-  isIlegalSlant(row, col) {
-    if (row === this.state.selectedRow || col === this.state.selectedCol) {
-      return false;
-    }
-    let isIlegalJump = false;
-    if (this.state.selectedRow < row) {
-      if (this.state.selectedCol < col) {
-        for (let i = 1; i < row - this.state.selectedRow; i++) {
-          if (
-            this.isValidCoordinates(
-              this.state.selectedRow + i,
-              this.state.selectedCol + i
-            )
-          ) {
-            if (
-              !this.isEmptySquare(
-                this.state.selectedRow + i,
-                this.state.selectedCol + i
-              )
-            ) {
-              isIlegalJump = true;
-            }
-          }
-        }
-      } else {
-        for (let i = 1; i < row - this.state.selectedRow; i++) {
-          if (
-            this.isValidCoordinates(
-              this.state.selectedRow + i,
-              this.state.selectedCol - i
-            )
-          ) {
-            if (
-              !this.isEmptySquare(
-                this.state.selectedRow + i,
-                this.state.selectedCol - i
-              )
-            ) {
-              isIlegalJump = true;
-            }
-          }
+  isIllegalSlant(availableMoves) {
+    let isIllegalJump = false;
+    for (let i = 1; i <= 7; i++) {
+      if (isIllegalJump) {
+        let idx = this.indexOfMove(
+          this.state.selectedRow + i,
+          this.state.selectedCol + i,
+          availableMoves
+        );
+        if (idx !== -1) {
+          availableMoves.splice(idx, 1);
         }
       }
-    } else {
-      if (this.state.selectedCol < col) {
-        for (let i = 1; i < this.state.selectedRow - row; i++) {
-          if (
-            this.isValidCoordinates(
-              this.state.selectedRow - i,
-              this.state.selectedCol + i
-            )
-          ) {
-            if (
-              !this.isEmptySquare(
-                this.state.selectedRow - i,
-                this.state.selectedCol + i
-              )
-            ) {
-              isIlegalJump = true;
-            }
-          }
-        }
-      } else {
-        for (let i = 1; i < this.state.selectedRow - row; i++) {
-          if (
-            this.isValidCoordinates(
-              this.state.selectedRow - i,
-              this.state.selectedCol - i
-            )
-          ) {
-            if (
-              !this.isEmptySquare(
-                this.state.selectedRow - i,
-                this.state.selectedCol - i
-              )
-            ) {
-              isIlegalJump = true;
-            }
-          }
+      if (
+        this.isValidCoordinates(
+          this.state.selectedRow + i,
+          this.state.selectedCol + i
+        )
+      ) {
+        if (
+          !this.isEmptySquare(
+            this.state.selectedRow + i,
+            this.state.selectedCol + i
+          )
+        ) {
+          isIllegalJump = true;
         }
       }
     }
-    return isIlegalJump;
+    isIllegalJump = false;
+    for (let i = 1; i <= 7; i++) {
+      if (isIllegalJump) {
+        let idx = this.indexOfMove(
+          this.state.selectedRow + i,
+          this.state.selectedCol - i,
+          availableMoves
+        );
+        if (idx !== -1) {
+          availableMoves.splice(idx, 1);
+        }
+      }
+      if (
+        this.isValidCoordinates(
+          this.state.selectedRow + i,
+          this.state.selectedCol - i
+        )
+      ) {
+        if (
+          !this.isEmptySquare(
+            this.state.selectedRow + i,
+            this.state.selectedCol - i
+          )
+        ) {
+          isIllegalJump = true;
+        }
+      }
+    }
+    isIllegalJump = false;
+    for (let i = 1; i <= 7; i++) {
+      if (isIllegalJump) {
+        let idx = this.indexOfMove(
+          this.state.selectedRow - i,
+          this.state.selectedCol + i,
+          availableMoves
+        );
+        if (idx !== -1) {
+          availableMoves.splice(idx, 1);
+        }
+      }
+      if (
+        this.isValidCoordinates(
+          this.state.selectedRow - i,
+          this.state.selectedCol + i
+        )
+      ) {
+        if (
+          !this.isEmptySquare(
+            this.state.selectedRow - i,
+            this.state.selectedCol + i
+          )
+        ) {
+          isIllegalJump = true;
+        }
+      }
+    }
+    isIllegalJump = false;
+    for (let i = 1; i <= 7; i++) {
+      if (isIllegalJump) {
+        let idx = this.indexOfMove(
+          this.state.selectedRow - i,
+          this.state.selectedCol - i,
+          availableMoves
+        );
+        if (idx !== -1) {
+          availableMoves.splice(idx, 1);
+        }
+      }
+      if (
+        this.isValidCoordinates(
+          this.state.selectedRow - i,
+          this.state.selectedCol - i
+        )
+      ) {
+        if (
+          !this.isEmptySquare(
+            this.state.selectedRow - i,
+            this.state.selectedCol - i
+          )
+        ) {
+          isIllegalJump = true;
+        }
+      }
+    }
+    return availableMoves;
   }
 
   checkCastleState(color) {
@@ -983,7 +1128,9 @@ export default class ChessBoard extends Component {
         }
       }
     }
-    console.log(moves);
+    //console.log(moves);
+    moves = this.isValidMove(moves);
+    //console.log(moves);
     if (this.state.selectedPieceName === "Pawn") {
       moves = this.checkPawnTake(
         this.state.selectedRow,
@@ -1003,7 +1150,7 @@ export default class ChessBoard extends Component {
     if (this.state.selectedPieceName === "King") {
       moves = this.updateCastleMoves(moves);
     }
-    console.log(moves);
+    //console.log(moves);
     for (let i = 0; i < moves.length; i++) {
       if (this.isValidCoordinates(moves[i][0], moves[i][1])) {
         let piece = this.getPiece(moves[i][0], moves[i][1]);
@@ -1016,7 +1163,10 @@ export default class ChessBoard extends Component {
     }
   }
 
-  changeAvailableMoves(row, col, moves) {
+  changeAvailableMoves(moves) {
+    //console.log(moves);
+    //moves = this.isValidMove(row, col, moves);
+    //console.log(moves);
     if (this.state.isSelected) {
       this.setSelectedMovesWhite(moves, true);
     }
