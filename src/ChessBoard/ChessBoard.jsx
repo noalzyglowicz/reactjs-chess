@@ -23,8 +23,10 @@ export default class ChessBoard extends Component {
       selectedNode: undefined,
       selectedPieceName: undefined,
       availableMoves: [],
-      blackCanCastle: true,
-      whiteCanCastle: true,
+      blackCanCastleKingSide: true,
+      whiteCanCastleKingSide: true,
+      blackCanCastleQueenSide: true,
+      whiteCanCastleQueenSide: true,
       selectedRow: undefined,
       selectedCol: undefined,
       pawnPromotionCoordinates: undefined,
@@ -392,7 +394,10 @@ export default class ChessBoard extends Component {
             7,
             this.createNode(7, 7, this.createBlankSquare(7, 7))
           );
-          this.setState({ blackCanCastle: false });
+          this.setState({
+            blackCanCastleKingSide: false,
+            blackCanCastleQueenSide: false,
+          });
         }
       } else {
         if (
@@ -420,7 +425,10 @@ export default class ChessBoard extends Component {
             4,
             this.createNode(7, 4, this.createBlankSquare(7, 4))
           );
-          this.setState({ blackCanCastle: false });
+          this.setState({
+            blackCanCastleKingSide: false,
+            blackCanCastleQueenSide: false,
+          });
         }
       }
     } else {
@@ -496,7 +504,8 @@ export default class ChessBoard extends Component {
     if (this.state.selectedPieceName === "King") {
       if (
         this.checkCastleState(
-          this.getPieceColor(this.state.selectedRow, this.state.selectedCol)
+          this.getPieceColor(this.state.selectedRow, this.state.selectedCol),
+          this.determineCastleSide(row, col)
         )
       ) {
         this.castle(
@@ -868,14 +877,26 @@ export default class ChessBoard extends Component {
     return availableMoves;
   }
 
-  checkCastleState(color) {
+  checkCastleState(color, castleSide) {
     if (color === "black") {
-      if (this.state.blackCanCastle === true) {
-        return true;
+      if (castleSide === "kingSide") {
+        if (this.state.blackCanCastleKingSide === true) {
+          return true;
+        }
+      } else {
+        if (this.state.blackCanCastleQueenSide === true) {
+          return true;
+        }
       }
     } else {
-      if (this.state.whiteCanCastle === true) {
-        return true;
+      if (castleSide === "kingSide") {
+        if (this.state.whiteCanCastleKingSide === true) {
+          return true;
+        }
+      } else {
+        if (this.state.whiteCanCastleQueenSide === true) {
+          return true;
+        }
       }
     }
     return false;
@@ -1090,27 +1111,17 @@ export default class ChessBoard extends Component {
       this.state.selectedRow,
       this.state.selectedCol
     );
-    if (this.checkCastleState(color)) {
+    if (this.checkCastleState(color, "kingSide")) {
       if (color === "black") {
-        if (this.isEmptySquare(7, 5) && this.isEmptySquare(7, 6)) {
-          moves.push([7, 6]);
-        } else if (
-          this.isEmptySquare(7, 1) &&
-          this.isEmptySquare(7, 2) &&
-          this.isEmptySquare(7, 3)
-        ) {
-          moves.push([7, 1]);
-        }
+        moves.push([7, 6]);
       } else {
-        if (this.isEmptySquare(0, 5) && this.isEmptySquare(0, 6)) {
-          moves.push([0, 6]);
-        } else if (
-          this.isEmptySquare(0, 1) &&
-          this.isEmptySquare(0, 2) &&
-          this.isEmptySquare(0, 3)
-        ) {
-          moves.push([0, 1]);
-        }
+        moves.push([0, 6]);
+      }
+    } else if (this.checkCastleState(color, "queenSide")) {
+      if (color === "black") {
+        moves.push([7, 2]);
+      } else {
+        moves.push([0, 2]);
       }
     }
     return moves;
