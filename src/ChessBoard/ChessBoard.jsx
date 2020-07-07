@@ -55,6 +55,7 @@ export default class ChessBoard extends Component {
   }
 
   move(row, col) {
+    console.log(this.state.blackCanCastleQueenSide);
     let newGrid = this.state.grid.slice();
     let currentAvailableMoves = this.state.availableMoves;
     let enPassantMoves = undefined;
@@ -70,15 +71,12 @@ export default class ChessBoard extends Component {
     if (this.state.availableMoves == []) {
       return false;
     }
-    //console.log(currentAvailableMoves);
     currentAvailableMoves = this.isValidMove(currentAvailableMoves);
     //if (!this.isValidMove(row, col, currentAvailableMoves)) {
     let validMove = false;
     // if (enPassantMoves == undefined) {
     //   return false;
     // }
-    //console.log(currentAvailableMoves);
-    console.log(this.state.selectedPieceName);
     if (this.containsMove(row, col, currentAvailableMoves)) {
       validMove = true;
     }
@@ -101,6 +99,42 @@ export default class ChessBoard extends Component {
     //}
     this.setState({ isSelected: false });
     this.updatePawnPromotionState(row, col);
+
+    if (
+      this.getPieceName(this.state.selectedRow, this.state.selectedCol) ===
+      "Rook"
+    ) {
+      if (
+        this.getPieceColor(this.state.selectedRow, this.state.selectedCol) ===
+        "black"
+      ) {
+        if (this.state.selectedRow === 7 && this.state.selectedCol === 7) {
+          this.setState({
+            blackCanCastleKingSide: false,
+          });
+        } else if (
+          this.state.selectedRow === 7 &&
+          this.state.selectedCol === 0
+        ) {
+          this.setState({
+            blackCanCastleQueenSide: false,
+          });
+        }
+      } else {
+        if (this.state.selectedRow === 0 && this.state.selectedCol === 7) {
+          this.setState({
+            whiteCanCastleKingSide: false,
+          });
+        } else if (
+          this.state.selectedRow === 0 &&
+          this.state.selectedCol === 0
+        ) {
+          this.setState({
+            whiteCanCastleQueenSide: false,
+          });
+        }
+      }
+    }
 
     let pieceToMove = this.getPiece(
       this.state.selectedRow,
@@ -286,11 +320,8 @@ export default class ChessBoard extends Component {
     ) {
       // let isIllegalSlant = this.isIllegalSlant(row, col);
       // let isIllegalStraight = this.isIllegalStraight(row, col);
-      //console.log(availableMoves);
-      console.log(availableMoves);
       availableMoves = this.isIllegalSlant(availableMoves);
-      console.log(availableMoves);
-      //console.log(availableMoves);
+
       if (!(this.state.selectedPieceName === "Bishop")) {
         availableMoves = this.isIllegalStraight(availableMoves);
       }
@@ -369,120 +400,128 @@ export default class ChessBoard extends Component {
     return availableMoves;
   }
 
-  castle(color, side) {
+  castle(row, col, color, side) {
     let newGrid = this.state.grid.slice();
     if (color === "black") {
       if (side === "kingSide") {
-        if (this.isEmptySquare(7, 5) && this.isEmptySquare(7, 6)) {
-          newGrid[7][6] = this.createChessSquare(
-            7,
-            6,
-            this.createNode(7, 6, this.createKing(7, 6, "black"), false)
-          );
-          newGrid[7][5] = this.createChessSquare(
-            7,
-            5,
-            this.createNode(7, 5, this.createRook(7, 5, "black"))
-          );
-          newGrid[7][4] = this.createChessSquare(
-            7,
-            5,
-            this.createNode(7, 4, this.createBlankSquare(7, 4))
-          );
-          newGrid[7][7] = this.createChessSquare(
-            7,
-            7,
-            this.createNode(7, 7, this.createBlankSquare(7, 7))
-          );
-          this.setState({
-            blackCanCastleKingSide: false,
-            blackCanCastleQueenSide: false,
-          });
+        if (row === 7 && col === 6) {
+          if (this.isEmptySquare(7, 5) && this.isEmptySquare(7, 6)) {
+            newGrid[7][6] = this.createChessSquare(
+              7,
+              6,
+              this.createNode(7, 6, this.createKing(7, 6, "black"), false)
+            );
+            newGrid[7][5] = this.createChessSquare(
+              7,
+              5,
+              this.createNode(7, 5, this.createRook(7, 5, "black"))
+            );
+            newGrid[7][4] = this.createChessSquare(
+              7,
+              5,
+              this.createNode(7, 4, this.createBlankSquare(7, 4))
+            );
+            newGrid[7][7] = this.createChessSquare(
+              7,
+              7,
+              this.createNode(7, 7, this.createBlankSquare(7, 7))
+            );
+            this.setState({
+              blackCanCastleKingSide: false,
+              blackCanCastleQueenSide: false,
+            });
+          }
         }
       } else {
-        if (
-          this.isEmptySquare(0, 1) &&
-          this.isEmptySquare(0, 2) &&
-          this.isEmptySquare(0, 3)
-        ) {
-          newGrid[7][2] = this.createChessSquare(
-            7,
-            2,
-            this.createNode(7, 2, this.createKing(7, 2, "black"), false)
-          );
-          newGrid[7][3] = this.createChessSquare(
-            7,
-            3,
-            this.createNode(7, 3, this.createRook(7, 3, "black"))
-          );
-          newGrid[7][0] = this.createChessSquare(
-            7,
-            0,
-            this.createNode(7, 0, this.createBlankSquare(7, 0))
-          );
-          newGrid[7][4] = this.createChessSquare(
-            7,
-            4,
-            this.createNode(7, 4, this.createBlankSquare(7, 4))
-          );
-          this.setState({
-            blackCanCastleKingSide: false,
-            blackCanCastleQueenSide: false,
-          });
+        if (row === 7 && col === 2) {
+          if (
+            this.isEmptySquare(7, 1) &&
+            this.isEmptySquare(7, 2) &&
+            this.isEmptySquare(7, 3)
+          ) {
+            newGrid[7][2] = this.createChessSquare(
+              7,
+              2,
+              this.createNode(7, 2, this.createKing(7, 2, "black"), false)
+            );
+            newGrid[7][3] = this.createChessSquare(
+              7,
+              3,
+              this.createNode(7, 3, this.createRook(7, 3, "black"))
+            );
+            newGrid[7][0] = this.createChessSquare(
+              7,
+              0,
+              this.createNode(7, 0, this.createBlankSquare(7, 0))
+            );
+            newGrid[7][4] = this.createChessSquare(
+              7,
+              4,
+              this.createNode(7, 4, this.createBlankSquare(7, 4))
+            );
+            this.setState({
+              blackCanCastleKingSide: false,
+              blackCanCastleQueenSide: false,
+            });
+          }
         }
       }
     } else {
       if (side === "kingSide") {
-        if (this.isEmptySquare(0, 5) && this.isEmptySquare(0, 6)) {
-          newGrid[0][6] = this.createChessSquare(
-            0,
-            6,
-            this.createNode(0, 6, this.createKing(7, 6, "white"), false)
-          );
-          newGrid[0][5] = this.createChessSquare(
-            0,
-            5,
-            this.createNode(0, 5, this.createRook(0, 5, "white"))
-          );
-          newGrid[0][4] = this.createChessSquare(
-            0,
-            4,
-            this.createNode(0, 4, this.createBlankSquare(0, 4))
-          );
-          newGrid[0][7] = this.createChessSquare(
-            0,
-            7,
-            this.createNode(0, 7, this.createBlankSquare(0, 7))
-          );
-          this.setState({ whiteCanCastle: false });
+        if (row === 0 && col === 6) {
+          if (this.isEmptySquare(0, 5) && this.isEmptySquare(0, 6)) {
+            newGrid[0][6] = this.createChessSquare(
+              0,
+              6,
+              this.createNode(0, 6, this.createKing(7, 6, "white"), false)
+            );
+            newGrid[0][5] = this.createChessSquare(
+              0,
+              5,
+              this.createNode(0, 5, this.createRook(0, 5, "white"))
+            );
+            newGrid[0][4] = this.createChessSquare(
+              0,
+              4,
+              this.createNode(0, 4, this.createBlankSquare(0, 4))
+            );
+            newGrid[0][7] = this.createChessSquare(
+              0,
+              7,
+              this.createNode(0, 7, this.createBlankSquare(0, 7))
+            );
+            this.setState({ whiteCanCastle: false });
+          }
         }
       } else {
-        if (
-          this.isEmptySquare(0, 1) &&
-          this.isEmptySquare(0, 2) &&
-          this.isEmptySquare(0, 3)
-        ) {
-          newGrid[0][2] = this.createChessSquare(
-            0,
-            2,
-            this.createNode(0, 2, this.createKing(0, 2, "white"), false)
-          );
-          newGrid[0][3] = this.createChessSquare(
-            0,
-            3,
-            this.createNode(0, 3, this.createRook(0, 3, "white"))
-          );
-          newGrid[0][0] = this.createChessSquare(
-            0,
-            0,
-            this.createNode(0, 0, this.createBlankSquare(0, 0))
-          );
-          newGrid[0][4] = this.createChessSquare(
-            0,
-            4,
-            this.createNode(0, 4, this.createBlankSquare(0, 4))
-          );
-          this.setState({ whiteCanCastle: false });
+        if (row === 0 && col === 2) {
+          if (
+            this.isEmptySquare(0, 1) &&
+            this.isEmptySquare(0, 2) &&
+            this.isEmptySquare(0, 3)
+          ) {
+            newGrid[0][2] = this.createChessSquare(
+              0,
+              2,
+              this.createNode(0, 2, this.createKing(0, 2, "white"), false)
+            );
+            newGrid[0][3] = this.createChessSquare(
+              0,
+              3,
+              this.createNode(0, 3, this.createRook(0, 3, "white"))
+            );
+            newGrid[0][0] = this.createChessSquare(
+              0,
+              0,
+              this.createNode(0, 0, this.createBlankSquare(0, 0))
+            );
+            newGrid[0][4] = this.createChessSquare(
+              0,
+              4,
+              this.createNode(0, 4, this.createBlankSquare(0, 4))
+            );
+            this.setState({ whiteCanCastle: false });
+          }
         }
       }
     }
@@ -509,6 +548,8 @@ export default class ChessBoard extends Component {
         )
       ) {
         this.castle(
+          row,
+          col,
           this.getPieceColor(this.state.selectedRow, this.state.selectedCol),
           this.determineCastleSide(row, col)
         );
@@ -1113,15 +1154,33 @@ export default class ChessBoard extends Component {
     );
     if (this.checkCastleState(color, "kingSide")) {
       if (color === "black") {
-        moves.push([7, 6]);
+        if (this.isEmptySquare(7, 5) && this.isEmptySquare(7, 6)) {
+          moves.push([7, 6]);
+        }
       } else {
-        moves.push([0, 6]);
+        if (this.isEmptySquare(0, 5) && this.isEmptySquare(0, 6)) {
+          moves.push([0, 6]);
+        }
       }
-    } else if (this.checkCastleState(color, "queenSide")) {
+    }
+    if (this.checkCastleState(color, "queenSide")) {
+      console.log("here adding queenside move");
       if (color === "black") {
-        moves.push([7, 2]);
+        if (
+          this.isEmptySquare(7, 1) &&
+          this.isEmptySquare(7, 2) &&
+          this.isEmptySquare(7, 3)
+        ) {
+          moves.push([7, 2]);
+        }
       } else {
-        moves.push([0, 2]);
+        if (
+          this.isEmptySquare(0, 1) &&
+          this.isEmptySquare(0, 2) &&
+          this.isEmptySquare(0, 3)
+        ) {
+          moves.push([0, 2]);
+        }
       }
     }
     return moves;
@@ -1139,9 +1198,7 @@ export default class ChessBoard extends Component {
         }
       }
     }
-    //console.log(moves);
     moves = this.isValidMove(moves);
-    //console.log(moves);
     if (this.state.selectedPieceName === "Pawn") {
       moves = this.checkPawnTake(
         this.state.selectedRow,
@@ -1161,7 +1218,6 @@ export default class ChessBoard extends Component {
     if (this.state.selectedPieceName === "King") {
       moves = this.updateCastleMoves(moves);
     }
-    //console.log(moves);
     for (let i = 0; i < moves.length; i++) {
       if (this.isValidCoordinates(moves[i][0], moves[i][1])) {
         let piece = this.getPiece(moves[i][0], moves[i][1]);
@@ -1175,9 +1231,6 @@ export default class ChessBoard extends Component {
   }
 
   changeAvailableMoves(moves) {
-    //console.log(moves);
-    //moves = this.isValidMove(row, col, moves);
-    //console.log(moves);
     if (this.state.isSelected) {
       this.setSelectedMovesWhite(moves, true);
     }
