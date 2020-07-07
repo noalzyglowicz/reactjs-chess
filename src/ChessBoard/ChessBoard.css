@@ -1,4 +1,10 @@
-  
 .grid {
-    margin: 100px 0 0;
-  }
+  display: grid;
+  height: 140px;
+  margin-top: 30px;
+}
+
+.node {
+  display: inline-block;
+  margin-top: 0px;
+}

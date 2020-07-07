@@ -11,20 +11,20 @@ export default class Pawn extends Component {
     };
   }
 
-  getAvailableMoves = (row, col) => {
-    let availableMoves = [];
+  getMoves = (row, col) => {
+    let moves = [];
     if (this.props.color === "black") {
-      availableMoves.push([row - 1, col]);
+      moves.push([row - 1, col]);
       if (this.state.isInStartingState) {
-        availableMoves.push([row - 2, col]);
+        moves.push([row - 2, col]);
       }
     } else {
-      availableMoves.push([row + 1, col]);
+      moves.push([row + 1, col]);
       if (this.state.isInStartingState) {
-        availableMoves.push([row + 2, col]);
+        moves.push([row + 2, col]);
       }
     }
-    return availableMoves;
+    return moves;
   };
   render() {
     if (this.props.color === "black") {
@@ -32,9 +32,7 @@ export default class Pawn extends Component {
     } else {
       var source = whitePawn;
     }
-    let f = this.props.getSelectedCoordinates;
-    var coordinateList = this.getAvailableMoves(this.props.row, this.props.col);
-    //var coordinateList = this.getAvailableMoves(f()[0], f()[1]);
+    var coordinateList = this.getMoves(this.props.row, this.props.col);
     return (
       <img
         src={source}
@@ -42,7 +40,7 @@ export default class Pawn extends Component {
         width="50"
         height="50"
         className="image"
-        onClick={() => this.props.changeAvailableMoves(coordinateList)}
+        onClick={() => this.props.changeMoves(coordinateList)}
       ></img>
     );
   }
