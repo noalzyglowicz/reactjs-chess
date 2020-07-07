@@ -95,7 +95,36 @@ export default class ChessBoard extends Component {
     }
     this.setState({ isSelected: false });
     this.updatePawnPromotionState(row, col);
+    this.checkRookUpdatesCastle();
+    let pieceToMove = this.getPiece(
+      this.state.selectedRow,
+      this.state.selectedCol
+    );
+    this.setSelectedMovesWhite(this.state.moves, false);
+    newGrid[row][col] = this.createChessSquare(
+      row,
+      col,
+      this.createNode(row, col, pieceToMove, false)
+    );
 
+    let newPiece = <BlankSquare></BlankSquare>;
+    newGrid[this.state.selectedRow][
+      this.state.selectedCol
+    ] = this.createChessSquare(
+      this.state.selectedRow,
+      this.state.selectedCol,
+      this.createNode(
+        this.state.selectedRow,
+        this.state.selectedCol,
+        newPiece,
+        false
+      )
+    );
+    this.setState({ grid: newGrid });
+    return true;
+  }
+
+  checkRookUpdatesCastle() {
     if (
       this.getPieceName(this.state.selectedRow, this.state.selectedCol) ===
       "Rook"
@@ -131,83 +160,34 @@ export default class ChessBoard extends Component {
         }
       }
     }
+  }
 
-    let pieceToMove = this.getPiece(
-      this.state.selectedRow,
-      this.state.selectedCol
-    );
-    this.setSelectedMovesWhite(this.state.moves, false);
-    newGrid[row][col] = this.createChessSquare(
-      row,
-      col,
-      this.createNode(row, col, pieceToMove, false)
-    );
-
-    let newPiece = <BlankSquare></BlankSquare>;
-    newGrid[this.state.selectedRow][
-      this.state.selectedCol
-    ] = this.createChessSquare(
-      this.state.selectedRow,
-      this.state.selectedCol,
-      this.createNode(
-        this.state.selectedRow,
-        this.state.selectedCol,
-        newPiece,
-        false
-      )
-    );
-    this.setState({ grid: newGrid });
-    return true;
+  selectPiece(row, col) {
+    this.setState({
+      selectedRow: row,
+      selectedCol: col,
+      selectedPieceName: this.getPieceName(row, col),
+      selctedNode: this.getNode(row, col),
+      mouseIsPressed: true,
+      isSelected: true,
+    });
   }
 
   handleMouseDown(row, col) {
     if (this.state.isSelected) {
       if (!(this.state.selectedNode === this.getNode(row, col))) {
         if (!this.isEmptySquare(row, col)) {
-          if (
-            this.getPieceColor(
-              this.state.selectedRow,
-              this.state.selectedCol
-            ) !== this.getPieceColor(row, col)
-          ) {
-            this.setState({
-              selectedRow: row,
-              selectedCol: col,
-              selectedPieceName: this.getPieceName(row, col),
-              selctedNode: this.getNode(row, col),
-              mouseIsPressed: true,
-              isSelected: true,
-            });
-          } else {
-            this.setState({
-              selectedRow: row,
-              selectedCol: col,
-              selectedPieceName: this.getPieceName(row, col),
-              selctedNode: this.getNode(row, col),
-              mouseIsPressed: true,
-              isSelected: true,
-            });
-          }
+          this.selectPiece(row, col);
           this.setSelectedMovesWhite(this.state.moves, false);
         }
       }
       this.move(row, col);
-      this.setState({
-        mouseIsPressed: true,
-      });
       if (!this.isDifferentSquare(row, col)) {
         this.setState({ isSelected: false });
       }
     } else {
       if (!this.isEmptySquare(row, col)) {
-        this.setState({
-          selectedRow: row,
-          selectedCol: col,
-          selectedPieceName: this.getPieceName(row, col),
-          selctedNode: this.getNode(row, col),
-          mouseIsPressed: true,
-          isSelected: true,
-        });
+        this.selectPiece(row, col);
       }
     }
     this.updatePiece(row, col);
@@ -578,8 +558,8 @@ export default class ChessBoard extends Component {
             currentEnPassant[col][0] = true;
           }
         }
-        if (this.isValidCoordinates(3, col + 1)) {
-          if (!this.isEmptySquare(3, col + 1)) {
+        if (this.isValidCoordinates(4, col + 1)) {
+          if (!this.isEmptySquare(4, col + 1)) {
             currentEnPassant[col][1] = true;
           }
         }
