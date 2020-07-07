@@ -168,11 +168,6 @@ export default class ChessBoard extends Component {
     if (this.state.isSelected) {
       if (!(this.state.selectedNode === this.getNode(row, col))) {
         if (!this.isEmptySquare(row, col)) {
-          this.setSelectedNodeWhite(
-            this.state.selectedRow,
-            this.state.selectedCol,
-            false
-          );
           if (
             this.getPieceColor(
               this.state.selectedRow,
@@ -188,17 +183,14 @@ export default class ChessBoard extends Component {
               isSelected: true,
             });
           } else {
-            this.setState(
-              {
-                selectedRow: row,
-                selectedCol: col,
-                selectedPieceName: this.getPieceName(row, col),
-                selctedNode: this.getNode(row, col),
-                mouseIsPressed: true,
-                isSelected: true,
-              },
-              () => this.setSelectedNodeWhite(row, col, true)
-            );
+            this.setState({
+              selectedRow: row,
+              selectedCol: col,
+              selectedPieceName: this.getPieceName(row, col),
+              selctedNode: this.getNode(row, col),
+              mouseIsPressed: true,
+              isSelected: true,
+            });
           }
           this.setSelectedMovesWhite(this.state.availableMoves, false);
         }
@@ -208,23 +200,18 @@ export default class ChessBoard extends Component {
         mouseIsPressed: true,
       });
       if (!this.isDifferentSquare(row, col)) {
-        this.setState({ isSelected: false }, () =>
-          this.setSelectedNodeWhite(row, col, false)
-        );
+        this.setState({ isSelected: false });
       }
     } else {
       if (!this.isEmptySquare(row, col)) {
-        this.setState(
-          {
-            selectedRow: row,
-            selectedCol: col,
-            selectedPieceName: this.getPieceName(row, col),
-            selctedNode: this.getNode(row, col),
-            mouseIsPressed: true,
-            isSelected: true,
-          },
-          () => this.setSelectedNodeWhite(row, col, true)
-        );
+        this.setState({
+          selectedRow: row,
+          selectedCol: col,
+          selectedPieceName: this.getPieceName(row, col),
+          selctedNode: this.getNode(row, col),
+          mouseIsPressed: true,
+          isSelected: true,
+        });
       }
     }
     this.updatePiece(row, col);
@@ -1228,6 +1215,19 @@ export default class ChessBoard extends Component {
         );
       }
     }
+    let piece = this.getPiece(this.state.selectedRow, this.state.selectedCol);
+    newGrid[this.state.selectedRow][
+      this.state.selectedCol
+    ] = this.createChessSquare(
+      this.state.selectedRow,
+      this.state.selectedCol,
+      this.createNode(
+        this.state.selectedRow,
+        this.state.selectedCol,
+        piece,
+        bool
+      )
+    );
   }
 
   changeAvailableMoves(moves) {
