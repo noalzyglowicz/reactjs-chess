@@ -4,16 +4,16 @@ import whiteKing from "./whiteKing.svg";
 
 export default class King extends Component {
   getAvailableMoves = (row, col) => {
-    let availableMoves = [];
-    availableMoves.push([row + 1, col]);
-    availableMoves.push([row - 1, col]);
-    availableMoves.push([row, col - 1]);
-    availableMoves.push([row, col + 1]);
-    availableMoves.push([row + 1, col + 1]);
-    availableMoves.push([row - 1, col - 1]);
-    availableMoves.push([row + 1, col - 1]);
-    availableMoves.push([row - 1, col + 1]);
-    return availableMoves;
+    let moves = [];
+    moves.push([row + 1, col]);
+    moves.push([row - 1, col]);
+    moves.push([row, col - 1]);
+    moves.push([row, col + 1]);
+    moves.push([row + 1, col + 1]);
+    moves.push([row - 1, col - 1]);
+    moves.push([row + 1, col - 1]);
+    moves.push([row - 1, col + 1]);
+    return moves;
   };
 
   render() {

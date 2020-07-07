@@ -4,12 +4,12 @@ import whiteRook from "./whiteRook.svg";
 
 export default class Rook extends Component {
   getAvailableMoves = (row, col) => {
-    let availableMoves = [];
+    let moves = [];
     for (let i = 0; i <= 7; i++) {
-      availableMoves.push([row, i]);
-      availableMoves.push([i, col]);
+      moves.push([row, i]);
+      moves.push([i, col]);
     }
-    return availableMoves;
+    return moves;
   };
   render() {
     if (this.props.color === "black") {

@@ -12,19 +12,19 @@ export default class Pawn extends Component {
   }
 
   getAvailableMoves = (row, col) => {
-    let availableMoves = [];
+    let moves = [];
     if (this.props.color === "black") {
-      availableMoves.push([row - 1, col]);
+      moves.push([row - 1, col]);
       if (this.state.isInStartingState) {
-        availableMoves.push([row - 2, col]);
+        moves.push([row - 2, col]);
       }
     } else {
-      availableMoves.push([row + 1, col]);
+      moves.push([row + 1, col]);
       if (this.state.isInStartingState) {
-        availableMoves.push([row + 2, col]);
+        moves.push([row + 2, col]);
       }
     }
-    return availableMoves;
+    return moves;
   };
   render() {
     if (this.props.color === "black") {

@@ -55,7 +55,6 @@ export default class ChessBoard extends Component {
   }
 
   move(row, col) {
-    console.log(this.state.blackCanCastleQueenSide);
     let newGrid = this.state.grid.slice();
     let currentAvailableMoves = this.state.availableMoves;
     let enPassantMoves = undefined;
@@ -67,16 +66,16 @@ export default class ChessBoard extends Component {
         this.getPieceColor(this.state.selectedRow, this.state.selectedCol)
       );
     }
-    this.ifCastle(row, col);
+    if (this.ifCastle(row, col)) {
+      this.setSelectedMovesWhite(this.state.availableMoves, false);
+      this.setState({ isSelected: false });
+      return false;
+    }
     if (this.state.availableMoves == []) {
       return false;
     }
     currentAvailableMoves = this.isValidMove(currentAvailableMoves);
-    //if (!this.isValidMove(row, col, currentAvailableMoves)) {
     let validMove = false;
-    // if (enPassantMoves == undefined) {
-    //   return false;
-    // }
     if (this.containsMove(row, col, currentAvailableMoves)) {
       validMove = true;
     }
@@ -91,12 +90,9 @@ export default class ChessBoard extends Component {
         validMove = true;
       }
     }
-    //console.log()
     if (!validMove) {
-      //console.log("invalid move");
       return false;
     }
-    //}
     this.setState({ isSelected: false });
     this.updatePawnPromotionState(row, col);
 
@@ -285,12 +281,6 @@ export default class ChessBoard extends Component {
   };
 
   isValidMove(availableMoves) {
-    //let containsMove = this.containsMove(row, col, availableMoves);
-    //let isSameColor = this.isSameColor(row, col);
-    // if (this.isSameColor(row, col)) {
-    //   let i = this.indexOfMove(row, col, availableMoves);
-    //   availableMoves.splice(i, 1);
-    // }
     for (let i = 0; i < availableMoves.length; i++) {
       if (
         !this.isValidCoordinates(availableMoves[i][0], availableMoves[i][1])
@@ -305,23 +295,12 @@ export default class ChessBoard extends Component {
         this.state.selectedPieceName === "Pawn"
       )
     ) {
-      // let isIllegalSlant = this.isIllegalSlant(row, col);
-      // let isIllegalStraight = this.isIllegalStraight(row, col);
       availableMoves = this.isIllegalSlant(availableMoves);
 
       if (!(this.state.selectedPieceName === "Bishop")) {
         availableMoves = this.isIllegalStraight(availableMoves);
       }
-      // if (isIllegalSlant || isIllegalStraight) {
-      //   return false;
-      // }
     }
-    // if (containsMove && !isSameColor) {
-    //   this.setState({ isSelected: false });
-    //   return true;
-    // } else {
-    //   return false;
-    // }
     return availableMoves;
   }
 
@@ -417,6 +396,7 @@ export default class ChessBoard extends Component {
               blackCanCastleKingSide: false,
               blackCanCastleQueenSide: false,
             });
+            return true;
           }
         }
       } else {
@@ -450,6 +430,7 @@ export default class ChessBoard extends Component {
               blackCanCastleKingSide: false,
               blackCanCastleQueenSide: false,
             });
+            return true;
           }
         }
       }
@@ -477,7 +458,11 @@ export default class ChessBoard extends Component {
               7,
               this.createNode(0, 7, this.createBlankSquare(0, 7))
             );
-            this.setState({ whiteCanCastle: false });
+            this.setState({
+              whiteCanCastleKingSide: false,
+              whiteCanCastleQueenSide: false,
+            });
+            return true;
           }
         }
       } else {
@@ -507,7 +492,11 @@ export default class ChessBoard extends Component {
               4,
               this.createNode(0, 4, this.createBlankSquare(0, 4))
             );
-            this.setState({ whiteCanCastle: false });
+            this.setState({
+              whiteCanCastleKingSide: false,
+              whiteCanCastleQueenSide: false,
+            });
+            return true;
           }
         }
       }
@@ -534,14 +523,19 @@ export default class ChessBoard extends Component {
           this.determineCastleSide(row, col)
         )
       ) {
-        this.castle(
-          row,
-          col,
-          this.getPieceColor(this.state.selectedRow, this.state.selectedCol),
-          this.determineCastleSide(row, col)
-        );
+        if (
+          this.castle(
+            row,
+            col,
+            this.getPieceColor(this.state.selectedRow, this.state.selectedCol),
+            this.determineCastleSide(row, col)
+          )
+        ) {
+          return true;
+        }
       }
     }
+    return false;
   }
 
   addEnPassantMoves(row, col, color) {
@@ -939,17 +933,6 @@ export default class ChessBoard extends Component {
     return side;
   }
 
-  setSelectedNodeWhite(row, col, bool) {
-    let newGrid = this.state.grid.slice();
-    let piece = this.getPiece(row, col);
-    newGrid[row][col] = this.createChessSquare(
-      row,
-      col,
-      this.createNode(row, col, piece, bool)
-    );
-    this.setState({ grid: newGrid });
-  }
-
   isDifferentSquare(row, col) {
     let isDifferentSquare = true;
     if (row == this.state.selectedRow && col == this.state.selectedCol) {
@@ -1151,7 +1134,6 @@ export default class ChessBoard extends Component {
       }
     }
     if (this.checkCastleState(color, "queenSide")) {
-      console.log("here adding queenside move");
       if (color === "black") {
         if (
           this.isEmptySquare(7, 1) &&

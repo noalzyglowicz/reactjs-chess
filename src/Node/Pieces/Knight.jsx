@@ -4,17 +4,17 @@ import whiteKnight from "./whiteKnight.svg";
 
 export default class Knight extends Component {
   getAvailableMoves = (row, col) => {
-    let availableMoves = [];
-    availableMoves.push([row + 2, col + 1]);
-    availableMoves.push([row + 2, col - 1]);
-    availableMoves.push([row - 2, col + 1]);
-    availableMoves.push([row - 2, col - 1]);
-    availableMoves.push([row + 1, col + 2]);
-    availableMoves.push([row - 1, col + 2]);
-    availableMoves.push([row + 1, col - 2]);
-    availableMoves.push([row - 1, col - 2]);
+    let moves = [];
+    moves.push([row + 2, col + 1]);
+    moves.push([row + 2, col - 1]);
+    moves.push([row - 2, col + 1]);
+    moves.push([row - 2, col - 1]);
+    moves.push([row + 1, col + 2]);
+    moves.push([row - 1, col + 2]);
+    moves.push([row + 1, col - 2]);
+    moves.push([row - 1, col - 2]);
 
-    return availableMoves;
+    return moves;
   };
 
   render() {

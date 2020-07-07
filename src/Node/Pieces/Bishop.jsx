@@ -4,14 +4,14 @@ import whiteBishop from "./whiteBishop.svg";
 
 export default class Bishop extends Component {
   getAvailableMoves = (row, col) => {
-    let availableMoves = [];
+    let moves = [];
     for (let i = 0; i <= 7; i++) {
-      availableMoves.push([row + i, col + i]);
-      availableMoves.push([row + i, col - i]);
-      availableMoves.push([row - i, col + i]);
-      availableMoves.push([row - i, col - i]);
+      moves.push([row + i, col + i]);
+      moves.push([row + i, col - i]);
+      moves.push([row - i, col + i]);
+      moves.push([row - i, col - i]);
     }
-    return availableMoves;
+    return moves;
   };
   render() {
     if (this.props.color == "black") {
