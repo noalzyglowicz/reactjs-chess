@@ -268,12 +268,7 @@ export default class ChessBoard extends Component {
         i = i - 1;
       }
     }
-    if (
-      !(
-        this.state.selectedPieceName === "Knight" ||
-        this.state.selectedPieceName === "Pawn"
-      )
-    ) {
+    if (!(this.state.selectedPieceName === "Knight")) {
       moves = this.isIllegalSlant(moves);
 
       if (!(this.state.selectedPieceName === "Bishop")) {
