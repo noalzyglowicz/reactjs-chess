@@ -16,10 +16,9 @@ export default class Queen extends Component {
     return moves;
   };
   render() {
-    if (this.props.color === "black") {
-      var source = blackQueen;
-    } else {
-      var source = whiteQueen;
+    let source = whiteQueen;
+    if (this.props.color == "black") {
+      source = blackQueen;
     }
     var coordinateList = this.getMoves(this.props.row, this.props.col);
     return (

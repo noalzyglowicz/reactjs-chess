@@ -18,10 +18,9 @@ export default class Knight extends Component {
   };
 
   render() {
-    if (this.props.color === "black") {
-      var source = blackKnight;
-    } else {
-      var source = whiteKnight;
+    let source = whiteKnight;
+    if (this.props.color == "black") {
+      source = blackKnight;
     }
     var coordinateList = this.getMoves(this.props.row, this.props.col);
     return (

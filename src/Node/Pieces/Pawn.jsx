@@ -27,10 +27,9 @@ export default class Pawn extends Component {
     return moves;
   };
   render() {
-    if (this.props.color === "black") {
-      var source = blackPawn;
-    } else {
-      var source = whitePawn;
+    let source = whitePawn;
+    if (this.props.color == "black") {
+      source = blackPawn;
     }
     var coordinateList = this.getMoves(this.props.row, this.props.col);
     return (

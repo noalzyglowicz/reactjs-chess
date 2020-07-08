@@ -79,13 +79,13 @@ export default class ChessBoard extends Component {
     if (this.containsMove(row, col, moves)) {
       validMove = true;
     }
-    if (!(enPassantMoves == undefined)) {
+    let newBlankPiece = <BlankSquare></BlankSquare>;
+    if (enPassantMoves !== undefined) {
       if (this.containsMove(row, col, enPassantMoves)) {
-        let newPiece = <BlankSquare></BlankSquare>;
         newGrid[this.state.selectedRow][col] = this.createChessSquare(
           this.state.selectedRow,
           col,
-          this.createNode(this.state.selectedRow, col, newPiece, false)
+          this.createNode(this.state.selectedRow, col, newBlankPiece, false)
         );
         validMove = true;
       }
@@ -106,9 +106,6 @@ export default class ChessBoard extends Component {
       col,
       this.createNode(row, col, pieceToMove, false)
     );
-    console.log("in piece moving");
-
-    let newPiece = <BlankSquare></BlankSquare>;
     newGrid[this.state.selectedRow][
       this.state.selectedCol
     ] = this.createChessSquare(
@@ -117,7 +114,7 @@ export default class ChessBoard extends Component {
       this.createNode(
         this.state.selectedRow,
         this.state.selectedCol,
-        newPiece,
+        newBlankPiece,
         false
       )
     );
@@ -176,7 +173,7 @@ export default class ChessBoard extends Component {
 
   handleMouseDown(row, col) {
     if (this.state.isSelected) {
-      if (!(this.state.selectedNode === this.getNode(row, col))) {
+      if (this.state.selectedNode !== this.getNode(row, col)) {
         if (!this.isEmptySquare(row, col)) {
           this.selectPiece(row, col);
           this.setSelectedMovesWhite(this.state.moves, false);
@@ -199,6 +196,7 @@ export default class ChessBoard extends Component {
   }
 
   render() {
+    console.log("render");
     const { grid } = this.state;
     return (
       <div>
@@ -245,6 +243,11 @@ export default class ChessBoard extends Component {
   componentDidMount() {
     const grid = this.getInitialGrid();
     this.setState({ grid });
+    console.log("component did mount");
+  }
+
+  componentDidUpdate() {
+    console.log("component did update");
   }
 
   getInitialGrid = () => {
@@ -268,10 +271,10 @@ export default class ChessBoard extends Component {
         i = i - 1;
       }
     }
-    if (!(this.state.selectedPieceName === "Knight")) {
+    if (this.state.selectedPieceName !== "Knight") {
       moves = this.isIllegalSlant(moves);
 
-      if (!(this.state.selectedPieceName === "Bishop")) {
+      if (this.state.selectedPieceName !== "Bishop") {
         moves = this.isIllegalStraight(moves);
       }
     }
@@ -941,8 +944,9 @@ export default class ChessBoard extends Component {
 
   updatePiece(row, col) {
     let piece = this.state.grid[row][col].Node.props.piece;
+    let newPiece = undefined;
     if (this.getPieceName(row, col) === "Pawn") {
-      var newPiece = this.createPawn(row, col, piece.props.color, false, false);
+      newPiece = this.createPawn(row, col, piece.props.color, false, false);
     } else if (this.getPieceName(row, col) === "Rook") {
       newPiece = this.createRook(row, col, piece.props.color);
     } else if (this.getPieceName(row, col) === "Knight") {
@@ -966,32 +970,33 @@ export default class ChessBoard extends Component {
   }
 
   getStartingPiece(row, col) {
+    let piece = undefined;
     if (row === 1) {
-      var piece = this.createPawn(row, col, "white", true, false);
+      piece = this.createPawn(row, col, "white", true, false);
     } else if (row === 0 && (col === 0 || col === 7)) {
-      var piece = this.createRook(row, col, "white");
+      piece = this.createRook(row, col, "white");
     } else if (row === 0 && (col === 1 || col === 6)) {
-      var piece = this.createKnight(row, col, "white");
+      piece = this.createKnight(row, col, "white");
     } else if (row === 0 && (col === 2 || col === 5)) {
-      var piece = this.createBishop(row, col, "white");
+      piece = this.createBishop(row, col, "white");
     } else if (row === 0 && col === 3) {
-      var piece = this.createQueen(row, col, "white");
+      piece = this.createQueen(row, col, "white");
     } else if (row === 0 && col === 4) {
-      var piece = this.createKing(row, col, "white");
+      piece = this.createKing(row, col, "white");
     } else if (row === 6) {
-      var piece = this.createPawn(row, col, "black", true, false);
+      piece = this.createPawn(row, col, "black", true, false);
     } else if (row === 7 && (col === 0 || col === 7)) {
-      var piece = this.createRook(row, col, "black");
+      piece = this.createRook(row, col, "black");
     } else if (row === 7 && (col === 1 || col === 6)) {
-      var piece = this.createKnight(row, col, "black");
+      piece = this.createKnight(row, col, "black");
     } else if (row === 7 && (col === 2 || col === 5)) {
-      var piece = this.createBishop(row, col, "black");
+      piece = this.createBishop(row, col, "black");
     } else if (row === 7 && col === 3) {
-      var piece = this.createQueen(row, col, "black");
+      piece = this.createQueen(row, col, "black");
     } else if (row === 7 && col === 4) {
-      var piece = this.createKing(row, col, "black");
+      piece = this.createKing(row, col, "black");
     } else {
-      var piece = this.createBlankSquare();
+      piece = this.createBlankSquare();
     }
     return piece;
   }

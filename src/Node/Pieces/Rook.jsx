@@ -12,10 +12,9 @@ export default class Rook extends Component {
     return moves;
   };
   render() {
-    if (this.props.color === "black") {
-      var source = blackRook;
-    } else {
-      var source = whiteRook;
+    let source = whiteRook;
+    if (this.props.color == "black") {
+      source = blackRook;
     }
     var coordinateList = this.getMoves(this.props.row, this.props.col);
     return (
