@@ -196,7 +196,6 @@ export default class ChessBoard extends Component {
   }
 
   render() {
-    console.log("render");
     const { grid } = this.state;
     return (
       <div>
@@ -243,11 +242,6 @@ export default class ChessBoard extends Component {
   componentDidMount() {
     const grid = this.getInitialGrid();
     this.setState({ grid });
-    console.log("component did mount");
-  }
-
-  componentDidUpdate() {
-    console.log("component did update");
   }
 
   getInitialGrid = () => {
@@ -256,8 +250,8 @@ export default class ChessBoard extends Component {
       const currentRow = [];
       for (let col = 0; col < 8; col++) {
         let piece = this.getStartingPiece(row, col);
-        Node = this.createNode(row, col, piece, false);
-        currentRow.push(this.createChessSquare(row, col, Node));
+        let chessNode = this.createNode(row, col, piece, false);
+        currentRow.push(this.createChessSquare(row, col, chessNode));
       }
       grid.push(currentRow);
     }
@@ -920,13 +914,13 @@ export default class ChessBoard extends Component {
     }
   }
 
-  createChessSquare = (row, col, Node) => {
+  createChessSquare(row, col, Node) {
     return {
       row,
       col,
       Node,
     };
-  };
+  }
 
   createNode(row, col, piece, clicked) {
     return (
@@ -1151,11 +1145,11 @@ export default class ChessBoard extends Component {
     }
     for (let i = 0; i < moves.length; i++) {
       if (this.isValidCoordinates(moves[i][0], moves[i][1])) {
-        let piece = this.getPiece(moves[i][0], moves[i][1]);
+        let pieceAtMove = this.getPiece(moves[i][0], moves[i][1]);
         newGrid[moves[i][0]][moves[i][1]] = this.createChessSquare(
           moves[i][0],
           moves[i][1],
-          this.createNode(moves[i][0], moves[i][1], piece, bool)
+          this.createNode(moves[i][0], moves[i][1], pieceAtMove, bool)
         );
       }
     }
