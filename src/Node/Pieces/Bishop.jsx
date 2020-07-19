@@ -15,7 +15,7 @@ export default class Bishop extends Component {
   };
   render() {
     let source = whiteBishop;
-    if (this.props.color == "black") {
+    if (this.props.color === "black") {
       source = blackBishop;
     }
     var coordinateList = this.getMoves(this.props.row, this.props.col);

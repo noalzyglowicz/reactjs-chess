@@ -11,9 +11,20 @@ export default class Rook extends Component {
     }
     return moves;
   };
+
+  // componentDidMount() {
+  //   this.props.onRefRook(this);
+  // }
+  // componentWillUnmount() {
+  //   this.props.onRefRook(undefined);
+  // }
+  // method() {
+  //   window.alert("am rook");
+  // }
+
   render() {
     let source = whiteRook;
-    if (this.props.color == "black") {
+    if (this.props.color === "black") {
       source = blackRook;
     }
     var coordinateList = this.getMoves(this.props.row, this.props.col);

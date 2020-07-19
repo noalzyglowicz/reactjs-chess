@@ -18,7 +18,7 @@ export default class King extends Component {
 
   render() {
     let source = whiteKing;
-    if (this.props.color == "black") {
+    if (this.props.color === "black") {
       source = blackKing;
     }
     var coordinateList = this.getMoves(this.props.row, this.props.col);

@@ -7,7 +7,6 @@ export default class Pawn extends Component {
     super(props);
     this.state = {
       isInStartingState: this.props.isInStartingState,
-      canBeEnPassanted: this.props.canBeEnPassanted,
     };
   }
 
@@ -26,9 +25,21 @@ export default class Pawn extends Component {
     }
     return moves;
   };
+
+  // componentDidMount() {
+  //   this.props.onRef(this);
+  // }
+  // componentWillUnmount() {
+  //   this.props.onRef(undefined);
+  // }
+
+  // getAlert() {
+  //   window.alert("am pawn");
+  // }
+
   render() {
     let source = whitePawn;
-    if (this.props.color == "black") {
+    if (this.props.color === "black") {
       source = blackPawn;
     }
     var coordinateList = this.getMoves(this.props.row, this.props.col);

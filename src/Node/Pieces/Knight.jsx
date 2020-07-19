@@ -17,9 +17,20 @@ export default class Knight extends Component {
     return moves;
   };
 
+  // componentDidMount() {
+  //   this.props.onRefKnight(this);
+  // }
+  // componentWillUnmount() {
+  //   this.props.onRefKnight(undefined);
+  // }
+
+  // getAlert() {
+  //   window.alert("am knight");
+  // }
+
   render() {
     let source = whiteKnight;
-    if (this.props.color == "black") {
+    if (this.props.color === "black") {
       source = blackKnight;
     }
     var coordinateList = this.getMoves(this.props.row, this.props.col);
