@@ -26,17 +26,6 @@ export default class Pawn extends Component {
     return moves;
   };
 
-  // componentDidMount() {
-  //   this.props.onRef(this);
-  // }
-  // componentWillUnmount() {
-  //   this.props.onRef(undefined);
-  // }
-
-  // getAlert() {
-  //   window.alert("am pawn");
-  // }
-
   render() {
     let source = whitePawn;
     if (this.props.color === "black") {
