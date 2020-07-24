@@ -16,33 +16,16 @@ export default class ChessBoard extends Component {
   constructor(props) {
     super(props);
     this.knight = React.createRef();
-    this.whiteKnight1 = React.createRef();
-    this.whiteKnight2 = React.createRef();
-    this.blackKnight1 = React.createRef();
-    this.blackKnight2 = React.createRef();
     this.pawn = React.createRef();
     this.king = React.createRef();
-    this.whiteKing = React.createRef();
-    this.blackKing = React.createRef();
     this.queen = React.createRef();
-    this.whiteQueen = React.createRef();
-    this.blackQueen = React.createRef();
     this.bishop = React.createRef();
-    this.whitebishop1 = React.createRef();
-    this.whitebishop2 = React.createRef();
-    this.blackbishop1 = React.createRef();
-    this.blackbishop2 = React.createRef();
     this.rook = React.createRef();
-    this.whiteRook1 = React.createRef();
-    this.whiteRook2 = React.createRef();
-    this.blackRook1 = React.createRef();
-    this.blackRook2 = React.createRef();
     this.textInput = null;
     this.setTextInputRef = (element) => {
       this.textInput = element;
     };
     this.state = {
-      reference: this.pawn,
       grid: [],
       mouseIsPressed: false,
       turn: "white",
@@ -83,17 +66,35 @@ export default class ChessBoard extends Component {
 
   move(selectedRow, selectedCol, row, col, moves) {
     if (this.isSameColor(selectedRow, selectedCol, row, col)) {
-      return false;
+      console.log(
+        "removing same color move",
+        "randMove",
+        selectedRow,
+        selectedCol,
+        row,
+        col
+      );
+      console.log("moves", moves);
+      moves.splice(this.indexOfMove(row, col, moves), 1);
+      console.log("moves after splice", moves);
     }
+    // if (selectedRow === row && selectedCol === col) {
+    //   console.log(
+    //     "removing same move",
+    //     "randMove",
+    //     selectedRow,
+    //     selectedCol,
+    //     row,
+    //     col
+    //   );
+    //   console.log("moves", moves);
+    //   moves.splice(this.indexOfMove(row, col, moves), 1);
+    //   console.log("moves after splice", moves);
+    // }
+    let randMove = undefined;
     let newGrid = this.state.grid.slice();
     let enPassantMoves = undefined;
-    let selectedPieceName = this.getPieceName(selectedRow, selectedCol);
     if (this.getPieceName(selectedRow, selectedCol) === "Pawn") {
-      // if (selectedCol === col) {
-      //   if (!this.isEmptySquare(row, col)) {
-      //     return false;
-      //   }
-      // }
       moves = this.checkPawnTake(
         selectedRow,
         selectedCol,
@@ -112,15 +113,58 @@ export default class ChessBoard extends Component {
       this.setState({ isSelected: false });
       return false;
     }
-    if (this.state.moves === []) {
+    if (moves === []) {
       return false;
     }
     moves = this.isValidMove(
       selectedRow,
       selectedCol,
       moves,
-      selectedPieceName
+      this.getPieceName(selectedRow, selectedCol)
     );
+    if (this.state.turn === "black") {
+      if (moves.length !== 0) {
+        let num = this.getRandomInt(moves.length);
+        randMove = moves[num];
+        row = randMove[0];
+        col = randMove[1];
+        console.log(
+          "randMove",
+          selectedRow,
+          selectedCol,
+          randMove[0],
+          randMove[1]
+        );
+      }
+    }
+    // if (this.isSameColor(selectedRow, selectedCol, row, col)) {
+    //   return false;
+    //   console.log(
+    //     "removing same color move",
+    //     "randMove",
+    //     selectedRow,
+    //     selectedCol,
+    //     row,
+    //     col
+    //   );
+    //   console.log("moves", moves);
+    //   moves.splice(this.indexOfMove(row, col, moves), 1);
+    //   console.log("moves after splice", moves);
+    // }
+    // if (selectedRow === row && selectedCol === col) {
+    //   return false;
+    //   console.log(
+    //     "removing same move",
+    //     "randMove",
+    //     selectedRow,
+    //     selectedCol,
+    //     row,
+    //     col
+    //   );
+    //   console.log("moves", moves);
+    //   moves.splice(this.indexOfMove(row, col, moves), 1);
+    //   console.log("moves after splice", moves);
+    // }
     let validMove = false;
     if (this.containsMove(row, col, moves)) {
       validMove = true;
@@ -137,7 +181,6 @@ export default class ChessBoard extends Component {
       }
     }
     if (!validMove) {
-      console.log("not a valid move");
       return false;
     }
     this.setState({ isSelected: false });
@@ -159,6 +202,7 @@ export default class ChessBoard extends Component {
     if (this.state.turn === "white") {
       this.setState({ turn: "black" });
     } else {
+      this.updatePiece(randMove[0], randMove[1]);
       this.setState({ turn: "white" });
     }
     return true;
@@ -252,7 +296,6 @@ export default class ChessBoard extends Component {
   }
 
   componentDidUpdate() {
-    console.log("getNode 7 7", this.getNode(7, 7));
     if (this.state.turn === "black") {
       let blackPieces = [];
       for (let i = 0; i < 8; i++) {
@@ -267,63 +310,43 @@ export default class ChessBoard extends Component {
       let successfulMove = false;
       while (!successfulMove) {
         let randPiece = blackPieces[this.getRandomInt(blackPieces.length)];
-        if (this.getPieceName(randPiece[0], randPiece[1]) !== "Pawn") {
-          if (this.getPiece(randPiece[0], randPiece[1]).ref.current !== null) {
-            let possibleMoves = this.getPiece(
-              randPiece[0],
-              randPiece[1]
-            ).ref.current.getMoves(randPiece[0], randPiece[1]);
-            possibleMoves = this.isValidMove(
-              randPiece[0],
-              randPiece[1],
-              possibleMoves,
-              this.getPieceName(randPiece[0], randPiece[1])
-            );
-            let num = this.getRandomInt(possibleMoves.length);
-            let randMove = possibleMoves[num];
-            if (this.containsMove(randMove[0], randMove[1], possibleMoves)) {
-              if (
-                this.move(
-                  randPiece[0],
-                  randPiece[1],
-                  randMove[0],
-                  randMove[1],
-                  possibleMoves
-                )
-              ) {
-                this.updatePiece(randMove[0], randMove[1]);
-                successfulMove = true;
-              }
-            }
-          }
+        let possibleMoves = [];
+        if (this.getPieceName(randPiece[0], randPiece[1]) === "Pawn") {
+          possibleMoves = this.getPiece(
+            randPiece[0],
+            randPiece[1]
+          ).props.getMoves(
+            randPiece[0],
+            randPiece[1],
+            this.getPieceColor(randPiece[0], randPiece[1]),
+            this.getPiece(randPiece[0], randPiece[1]).props.isInStartingState
+          );
         } else {
-          if (this.textInput !== null) {
-            let possibleMoves = this.textInput.getMoves(
-              randPiece[0],
-              randPiece[1]
-            );
-            possibleMoves = this.isValidMove(
+          possibleMoves = this.getPiece(
+            randPiece[0],
+            randPiece[1]
+          ).props.getMoves(randPiece[0], randPiece[1]);
+        }
+        possibleMoves = this.isValidMove(
+          randPiece[0],
+          randPiece[1],
+          possibleMoves,
+          this.getPieceName(randPiece[0], randPiece[1])
+        );
+        if (possibleMoves.length > 0) {
+          let num = this.getRandomInt(possibleMoves.length);
+          let randMove = possibleMoves[num];
+          if (
+            this.move(
               randPiece[0],
               randPiece[1],
-              possibleMoves,
-              this.getPieceName(randPiece[0], randPiece[1])
-            );
-            let num = this.getRandomInt(possibleMoves.length);
-            let randMove = possibleMoves[num];
-            if (this.containsMove(randMove[0], randMove[1], possibleMoves)) {
-              if (
-                this.move(
-                  randPiece[0],
-                  randPiece[1],
-                  randMove[0],
-                  randMove[1],
-                  possibleMoves
-                )
-              ) {
-                this.updatePiece(randMove[0], randMove[1]);
-                successfulMove = true;
-              }
-            }
+              randMove[0],
+              randMove[1],
+              possibleMoves
+            )
+          ) {
+            //this.updatePiece(randMove[0], randMove[1]);
+            successfulMove = true;
           }
         }
       }
@@ -337,7 +360,6 @@ export default class ChessBoard extends Component {
   }
 
   render() {
-    console.log("render", this.knight);
     const { grid } = this.state;
     return (
       <div>
@@ -382,7 +404,6 @@ export default class ChessBoard extends Component {
   }
 
   componentDidMount() {
-    console.log("componentDidMount", this.pawn);
     const grid = this.getInitialGrid();
     this.setState({ grid });
   }
@@ -404,6 +425,22 @@ export default class ChessBoard extends Component {
   isValidMove(selectedRow, selectedCol, moves, selectedPieceName) {
     for (let i = 0; i < moves.length; i++) {
       if (!this.isValidCoordinates(moves[i][0], moves[i][1])) {
+        moves.splice(i, 1);
+        i = i - 1;
+      } else if (
+        this.isSameColor(selectedRow, selectedCol, moves[i][0], moves[i][1])
+      ) {
+        // console.log(
+        //   "removing same color move",
+        //   "randMove",
+        //   selectedRow,
+        //   selectedCol,
+        //   row,
+        //   col
+        // );
+        // console.log("moves", moves);
+        //moves.splice(this.indexOfMove(row, col, moves), 1);
+        // console.log("moves after splice", moves);
         moves.splice(i, 1);
         i = i - 1;
       }
@@ -439,10 +476,6 @@ export default class ChessBoard extends Component {
   }
 
   checkPawnTake(selectedRow, selectedCol, moves, color) {
-    moves.push([selectedRow - 1, selectedCol + 1]);
-    moves.push([selectedRow - 1, selectedCol - 1]);
-    moves.push([selectedRow + 1, selectedCol + 1]);
-    moves.push([selectedRow + 1, selectedCol - 1]);
     if (color === "black") {
       if (this.isValidCoordinates(selectedRow - 1, selectedCol + 1)) {
         if (!this.isEmptySquare(selectedRow - 1, selectedCol + 1)) {
@@ -1061,13 +1094,28 @@ export default class ChessBoard extends Component {
   createPawn(row, col, color, isInStartingState) {
     return (
       <Pawn
-        ref={this.setTextInputRef}
         id={"pawn"}
         row={row}
         col={col}
         color={color}
+        getMoves={(row, col, color, isInStartingState) => {
+          let moves = [];
+          if (color === "black") {
+            moves.push([row - 1, col]);
+            if (isInStartingState) {
+              moves.push([row - 2, col]);
+            }
+          } else {
+            moves.push([row + 1, col]);
+            if (isInStartingState) {
+              moves.push([row + 2, col]);
+            }
+          }
+          return moves;
+        }}
         changeMoves={this.changeMoves.bind(this)}
         isInStartingState={isInStartingState}
+        ref={this.setTextInputRef}
       ></Pawn>
     );
   }
@@ -1078,6 +1126,19 @@ export default class ChessBoard extends Component {
         row={row}
         col={col}
         color={color}
+        getMoves={(row, col) => {
+          let moves = [];
+          moves.push([row + 2, col + 1]);
+          moves.push([row + 2, col - 1]);
+          moves.push([row - 2, col + 1]);
+          moves.push([row - 2, col - 1]);
+          moves.push([row + 1, col + 2]);
+          moves.push([row - 1, col + 2]);
+          moves.push([row + 1, col - 2]);
+          moves.push([row - 1, col - 2]);
+
+          return moves;
+        }}
         changeMoves={this.changeMoves.bind(this)}
         ref={this.knight}
       ></Knight>
@@ -1090,6 +1151,16 @@ export default class ChessBoard extends Component {
         row={row}
         col={col}
         color={color}
+        getMoves={(row, col) => {
+          let moves = [];
+          for (let i = 0; i <= 7; i++) {
+            moves.push([row + i, col + i]);
+            moves.push([row + i, col - i]);
+            moves.push([row - i, col + i]);
+            moves.push([row - i, col - i]);
+          }
+          return moves;
+        }}
         changeMoves={this.changeMoves.bind(this)}
         ref={this.bishop}
       ></Bishop>
@@ -1102,6 +1173,14 @@ export default class ChessBoard extends Component {
         row={row}
         col={col}
         color={color}
+        getMoves={(row, col) => {
+          let moves = [];
+          for (let i = 0; i <= 7; i++) {
+            moves.push([row, i]);
+            moves.push([i, col]);
+          }
+          return moves;
+        }}
         changeMoves={this.changeMoves.bind(this)}
         ref={this.rook}
       ></Rook>
@@ -1114,6 +1193,18 @@ export default class ChessBoard extends Component {
         row={row}
         col={col}
         color={color}
+        getMoves={(row, col) => {
+          let moves = [];
+          for (let i = 0; i <= 7; i++) {
+            moves.push([row, i]);
+            moves.push([i, col]);
+            moves.push([row + i, col + i]);
+            moves.push([row + i, col - i]);
+            moves.push([row - i, col + i]);
+            moves.push([row - i, col - i]);
+          }
+          return moves;
+        }}
         changeMoves={this.changeMoves.bind(this)}
         ref={this.queen}
       ></Queen>
@@ -1126,6 +1217,18 @@ export default class ChessBoard extends Component {
         row={row}
         col={col}
         color={color}
+        getMoves={(row, col) => {
+          let moves = [];
+          moves.push([row + 1, col]);
+          moves.push([row - 1, col]);
+          moves.push([row, col - 1]);
+          moves.push([row, col + 1]);
+          moves.push([row + 1, col + 1]);
+          moves.push([row - 1, col - 1]);
+          moves.push([row + 1, col - 1]);
+          moves.push([row - 1, col + 1]);
+          return moves;
+        }}
         changeMoves={this.changeMoves.bind(this)}
         ref={this.king}
       ></King>

@@ -3,22 +3,12 @@ import blackBishop from "./blackBishop.svg";
 import whiteBishop from "./whiteBishop.svg";
 
 export default class Bishop extends Component {
-  getMoves = (row, col) => {
-    let moves = [];
-    for (let i = 0; i <= 7; i++) {
-      moves.push([row + i, col + i]);
-      moves.push([row + i, col - i]);
-      moves.push([row - i, col + i]);
-      moves.push([row - i, col - i]);
-    }
-    return moves;
-  };
   render() {
     let source = whiteBishop;
     if (this.props.color === "black") {
       source = blackBishop;
     }
-    var coordinateList = this.getMoves(this.props.row, this.props.col);
+    var coordinateList = this.props.getMoves(this.props.row, this.props.col);
     return (
       <img
         src={source}

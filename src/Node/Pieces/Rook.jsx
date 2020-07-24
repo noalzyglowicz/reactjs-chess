@@ -3,21 +3,12 @@ import blackRook from "./blackRook.svg";
 import whiteRook from "./whiteRook.svg";
 
 export default class Rook extends Component {
-  getMoves = (row, col) => {
-    let moves = [];
-    for (let i = 0; i <= 7; i++) {
-      moves.push([row, i]);
-      moves.push([i, col]);
-    }
-    return moves;
-  };
-
   render() {
     let source = whiteRook;
     if (this.props.color === "black") {
       source = blackRook;
     }
-    var coordinateList = this.getMoves(this.props.row, this.props.col);
+    var coordinateList = this.props.getMoves(this.props.row, this.props.col);
     return (
       <img
         src={source}

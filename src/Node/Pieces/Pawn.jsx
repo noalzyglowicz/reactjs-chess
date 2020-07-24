@@ -10,28 +10,17 @@ export default class Pawn extends Component {
     };
   }
 
-  getMoves = (row, col) => {
-    let moves = [];
-    if (this.props.color === "black") {
-      moves.push([row - 1, col]);
-      if (this.state.isInStartingState) {
-        moves.push([row - 2, col]);
-      }
-    } else {
-      moves.push([row + 1, col]);
-      if (this.state.isInStartingState) {
-        moves.push([row + 2, col]);
-      }
-    }
-    return moves;
-  };
-
   render() {
     let source = whitePawn;
     if (this.props.color === "black") {
       source = blackPawn;
     }
-    var coordinateList = this.getMoves(this.props.row, this.props.col);
+    var coordinateList = this.props.getMoves(
+      this.props.row,
+      this.props.col,
+      this.props.color,
+      this.state.isInStartingState
+    );
     return (
       <img
         src={source}
