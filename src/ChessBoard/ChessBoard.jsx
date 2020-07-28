@@ -64,19 +64,10 @@ export default class ChessBoard extends Component {
     };
   }
 
-  move(selectedRow, selectedCol, row, col, moves) {
+  checkMoves(selectedRow, selectedCol, row, col, moves) {
     if (this.isSameColor(selectedRow, selectedCol, row, col)) {
-      console.log(
-        "removing same color move",
-        "randMove",
-        selectedRow,
-        selectedCol,
-        row,
-        col
-      );
       moves.splice(this.indexOfMove(row, col, moves), 1);
     }
-    let newGrid = this.state.grid.slice();
     let enPassantMoves = undefined;
     if (this.getPieceName(selectedRow, selectedCol) === "Pawn") {
       moves = this.checkPawnTake(
@@ -85,47 +76,74 @@ export default class ChessBoard extends Component {
         moves,
         this.getPieceColor(selectedRow, selectedCol)
       );
-      this.updateEnPassantState(selectedRow, selectedCol, row, col);
+      //this.updateEnPassantState(selectedRow, selectedCol, row, col);
       enPassantMoves = this.addEnPassantMoves(
         selectedRow,
         selectedCol,
         this.getPieceColor(selectedRow, selectedCol)
       );
     }
-    if (this.ifCastle(row, col)) {
-      this.setSelectedMovesWhite(this.state.moves, false);
-      this.setState({ isSelected: false });
-      return false;
-    }
-    if (moves === []) {
-      return false;
-    }
-    moves = this.isValidMove(
+
+    // if (this.ifCastle(row, col)) {
+    //   this.setSelectedMovesWhite(this.state.moves, false);
+    //   this.setState({ isSelected: false });
+    //   return false;
+    // }
+
+    moves = this.removeInvalidMoves(
       selectedRow,
       selectedCol,
       moves,
       this.getPieceName(selectedRow, selectedCol)
     );
-    let randMove = undefined;
-    if (this.state.turn === "black") {
-      if (moves.length !== 0) {
-        let num = this.getRandomInt(moves.length);
-        randMove = moves[num];
-        row = randMove[0];
-        col = randMove[1];
-        console.log(
-          "randMove",
-          selectedRow,
-          selectedCol,
-          randMove[0],
-          randMove[1]
-        );
-      }
+
+    // if (moves === []) {
+    //   return false;
+    // }
+
+    // let randMove = undefined;
+    // if (this.state.turn === "black") {
+    //   if (moves.length !== 0) {
+    //     let num = this.getRandomInt(moves.length);
+    //     randMove = moves[num];
+    //     row = randMove[0];
+    //     col = randMove[1];
+    //   }
+    // }
+
+    // let validMove = false;
+    // if (this.containsMove(row, col, moves)) {
+    //   validMove = true;
+    // }
+    // if (!validMove) {
+    //   return false;
+    // } else {
+    //   return true;
+    // }
+
+    return moves;
+  }
+
+  isValidMove(row, col, moves) {
+    if (moves === []) {
+      return false;
     }
     let validMove = false;
     if (this.containsMove(row, col, moves)) {
       validMove = true;
     }
+    if (!validMove) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+  move(selectedRow, selectedCol, row, col, moves) {
+    let newGrid = this.state.grid.slice();
+
+    //this.checkMoves(selectedRow, selectedCol, row, col, moves);
+
     // if (enPassantMoves !== undefined) {
     //   let newBlankPiece = <BlankSquare></BlankSquare>;
     //   if (this.containsMove(row, col, enPassantMoves)) {
@@ -137,15 +155,16 @@ export default class ChessBoard extends Component {
     //     validMove = true;
     //   }
     // }
-    if (!validMove) {
-      return false;
-    }
+    // if (!validMove) {
+    //   return false;
+    // }
     let newBlankPiece = <BlankSquare></BlankSquare>;
     this.setState({ isSelected: false });
+    this.updateEnPassantState(selectedRow, selectedCol, row, col);
     this.updatePawnPromotionState(row, col);
     this.checkRookUpdatesCastle(selectedRow, selectedCol);
     let pieceToMove = this.getPiece(selectedRow, selectedCol);
-    this.setSelectedMovesWhite(this.state.moves, false);
+    this.setSelectedMovesWhite(moves, false);
     newGrid[row][col] = this.createChessSquare(
       row,
       col,
@@ -160,7 +179,7 @@ export default class ChessBoard extends Component {
     if (this.state.turn === "white") {
       this.setState({ turn: "black" });
     } else {
-      this.updatePiece(randMove[0], randMove[1]);
+      //this.updatePiece(randMove[0], randMove[1]);
       this.setState({ turn: "white" });
     }
     return true;
@@ -235,13 +254,23 @@ export default class ChessBoard extends Component {
           this.setSelectedMovesWhite(this.state.moves, false);
         }
       }
-      this.move(
+      let moves = this.state.moves;
+      moves = this.checkMoves(
         this.state.selectedRow,
         this.state.selectedCol,
         row,
         col,
-        this.state.moves
+        moves
       );
+      if (this.isValidMove(row, col, moves)) {
+        this.move(
+          this.state.selectedRow,
+          this.state.selectedCol,
+          row,
+          col,
+          moves
+        );
+      }
       if (!this.isDifferentSquare(row, col)) {
         this.setState({ isSelected: false });
       }
@@ -286,7 +315,7 @@ export default class ChessBoard extends Component {
             randPiece[1]
           ).props.getMoves(randPiece[0], randPiece[1]);
         }
-        possibleMoves = this.isValidMove(
+        possibleMoves = this.removeInvalidMoves(
           randPiece[0],
           randPiece[1],
           possibleMoves,
@@ -295,16 +324,25 @@ export default class ChessBoard extends Component {
         if (possibleMoves.length > 0) {
           let num = this.getRandomInt(possibleMoves.length);
           let randMove = possibleMoves[num];
-          if (
-            this.move(
-              randPiece[0],
-              randPiece[1],
-              randMove[0],
-              randMove[1],
-              possibleMoves
-            )
-          ) {
-            successfulMove = true;
+          possibleMoves = this.checkMoves(
+            randPiece[0],
+            randPiece[1],
+            randMove[0],
+            randMove[1],
+            possibleMoves
+          );
+          if (this.isValidMove(randMove[0], randMove[1], possibleMoves)) {
+            if (
+              this.move(
+                randPiece[0],
+                randPiece[1],
+                randMove[0],
+                randMove[1],
+                possibleMoves
+              )
+            ) {
+              successfulMove = true;
+            }
           }
         }
       }
@@ -379,7 +417,7 @@ export default class ChessBoard extends Component {
     return grid;
   };
 
-  isValidMove(selectedRow, selectedCol, moves, selectedPieceName) {
+  removeInvalidMoves(selectedRow, selectedCol, moves, selectedPieceName) {
     for (let i = 0; i < moves.length; i++) {
       if (!this.isValidCoordinates(moves[i][0], moves[i][1])) {
         moves.splice(i, 1);
@@ -1259,7 +1297,7 @@ export default class ChessBoard extends Component {
         }
       }
     }
-    moves = this.isValidMove(
+    moves = this.removeInvalidMoves(
       this.state.selectedRow,
       this.state.selectedCol,
       moves,
