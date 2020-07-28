@@ -74,24 +74,8 @@ export default class ChessBoard extends Component {
         row,
         col
       );
-      console.log("moves", moves);
       moves.splice(this.indexOfMove(row, col, moves), 1);
-      console.log("moves after splice", moves);
     }
-    // if (selectedRow === row && selectedCol === col) {
-    //   console.log(
-    //     "removing same move",
-    //     "randMove",
-    //     selectedRow,
-    //     selectedCol,
-    //     row,
-    //     col
-    //   );
-    //   console.log("moves", moves);
-    //   moves.splice(this.indexOfMove(row, col, moves), 1);
-    //   console.log("moves after splice", moves);
-    // }
-    let randMove = undefined;
     let newGrid = this.state.grid.slice();
     let enPassantMoves = undefined;
     if (this.getPieceName(selectedRow, selectedCol) === "Pawn") {
@@ -122,6 +106,7 @@ export default class ChessBoard extends Component {
       moves,
       this.getPieceName(selectedRow, selectedCol)
     );
+    let randMove = undefined;
     if (this.state.turn === "black") {
       if (moves.length !== 0) {
         let num = this.getRandomInt(moves.length);
@@ -137,52 +122,25 @@ export default class ChessBoard extends Component {
         );
       }
     }
-    // if (this.isSameColor(selectedRow, selectedCol, row, col)) {
-    //   return false;
-    //   console.log(
-    //     "removing same color move",
-    //     "randMove",
-    //     selectedRow,
-    //     selectedCol,
-    //     row,
-    //     col
-    //   );
-    //   console.log("moves", moves);
-    //   moves.splice(this.indexOfMove(row, col, moves), 1);
-    //   console.log("moves after splice", moves);
-    // }
-    // if (selectedRow === row && selectedCol === col) {
-    //   return false;
-    //   console.log(
-    //     "removing same move",
-    //     "randMove",
-    //     selectedRow,
-    //     selectedCol,
-    //     row,
-    //     col
-    //   );
-    //   console.log("moves", moves);
-    //   moves.splice(this.indexOfMove(row, col, moves), 1);
-    //   console.log("moves after splice", moves);
-    // }
     let validMove = false;
     if (this.containsMove(row, col, moves)) {
       validMove = true;
     }
-    let newBlankPiece = <BlankSquare></BlankSquare>;
-    if (enPassantMoves !== undefined) {
-      if (this.containsMove(row, col, enPassantMoves)) {
-        newGrid[selectedRow][col] = this.createChessSquare(
-          selectedRow,
-          col,
-          this.createNode(selectedRow, col, newBlankPiece, false)
-        );
-        validMove = true;
-      }
-    }
+    // if (enPassantMoves !== undefined) {
+    //   let newBlankPiece = <BlankSquare></BlankSquare>;
+    //   if (this.containsMove(row, col, enPassantMoves)) {
+    //     newGrid[selectedRow][col] = this.createChessSquare(
+    //       selectedRow,
+    //       col,
+    //       this.createNode(selectedRow, col, newBlankPiece, false)
+    //     );
+    //     validMove = true;
+    //   }
+    // }
     if (!validMove) {
       return false;
     }
+    let newBlankPiece = <BlankSquare></BlankSquare>;
     this.setState({ isSelected: false });
     this.updatePawnPromotionState(row, col);
     this.checkRookUpdatesCastle(selectedRow, selectedCol);
@@ -296,6 +254,7 @@ export default class ChessBoard extends Component {
   }
 
   componentDidUpdate() {
+    console.log(this.state.turn);
     if (this.state.turn === "black") {
       let blackPieces = [];
       for (let i = 0; i < 8; i++) {
@@ -345,12 +304,10 @@ export default class ChessBoard extends Component {
               possibleMoves
             )
           ) {
-            //this.updatePiece(randMove[0], randMove[1]);
             successfulMove = true;
           }
         }
       }
-      this.setState({ turn: "white" });
       return false;
     }
   }
