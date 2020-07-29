@@ -139,9 +139,16 @@ export default class ChessBoard extends Component {
     }
   }
 
-  move(selectedRow, selectedCol, row, col, moves) {
-    let newGrid = this.state.grid.slice();
+  deepCopyGrid(array) {
+    let newCopy = [];
+    for (let i = 0; i < array.length; i++) {
+      newCopy.push(array[i].slice());
+    }
+    return newCopy;
+  }
 
+  move(selectedRow, selectedCol, row, col, moves, grid) {
+    console.log(this.getPieceName(row, col));
     //this.checkMoves(selectedRow, selectedCol, row, col, moves);
 
     // if (enPassantMoves !== undefined) {
@@ -165,24 +172,24 @@ export default class ChessBoard extends Component {
     this.checkRookUpdatesCastle(selectedRow, selectedCol);
     let pieceToMove = this.getPiece(selectedRow, selectedCol);
     this.setSelectedMovesWhite(moves, false);
-    newGrid[row][col] = this.createChessSquare(
+    grid[row][col] = this.createChessSquare(
       row,
       col,
       this.createNode(row, col, pieceToMove, false)
     );
-    newGrid[selectedRow][selectedCol] = this.createChessSquare(
+    grid[selectedRow][selectedCol] = this.createChessSquare(
       selectedRow,
       selectedCol,
       this.createNode(selectedRow, selectedCol, newBlankPiece, false)
     );
-    this.setState({ grid: newGrid });
+    //this.setState({ grid: newGrid });
     if (this.state.turn === "white") {
       this.setState({ turn: "black" });
     } else {
       //this.updatePiece(randMove[0], randMove[1]);
       this.setState({ turn: "white" });
     }
-    return true;
+    return grid;
   }
 
   checkRookUpdatesCastle(selectedRow, selectedCol) {
@@ -268,7 +275,8 @@ export default class ChessBoard extends Component {
           this.state.selectedCol,
           row,
           col,
-          moves
+          moves,
+          this.state.grid
         );
       }
       if (!this.isDifferentSquare(row, col)) {
@@ -283,71 +291,187 @@ export default class ChessBoard extends Component {
   }
 
   componentDidUpdate() {
-    console.log(this.state.turn);
-    if (this.state.turn === "black") {
-      let blackPieces = [];
+    // if (this.state.turn === "black") {
+    //   let blackPieces = [];
+    //   for (let i = 0; i < 8; i++) {
+    //     for (let j = 0; j < 8; j++) {
+    //       if (this.getPieceName(i, j) !== "BlankSquare") {
+    //         if (this.getPieceColor(i, j) !== "white") {
+    //           blackPieces.push([i, j]);
+    //         }
+    //       }
+    //     }
+    //   }
+    //   let successfulMove = false;                 //old random picked move code starts here
+    //   //while (!successfulMove) {
+    //   let randPiece = blackPieces[this.getRandomInt(blackPieces.length)];
+    //   let possibleMoves = [];
+    //   if (this.getPieceName(randPiece[0], randPiece[1]) === "Pawn") {
+    //     possibleMoves = this.getPiece(
+    //       randPiece[0],
+    //       randPiece[1]
+    //     ).props.getMoves(
+    //       randPiece[0],
+    //       randPiece[1],
+    //       this.getPieceColor(randPiece[0], randPiece[1]),
+    //       this.getPiece(randPiece[0], randPiece[1]).props.isInStartingState
+    //     );
+    //   } else {
+    //     possibleMoves = this.getPiece(
+    //       randPiece[0],
+    //       randPiece[1]
+    //     ).props.getMoves(randPiece[0], randPiece[1]);
+    //   }
+    //   possibleMoves = this.removeInvalidMoves(
+    //     randPiece[0],
+    //     randPiece[1],
+    //     possibleMoves,
+    //     this.getPieceName(randPiece[0], randPiece[1])
+    //   );
+    //   if (possibleMoves.length > 0) {
+    //     let num = this.getRandomInt(possibleMoves.length);
+    //     let randMove = possibleMoves[num];
+    //     possibleMoves = this.checkMoves(
+    //       randPiece[0],
+    //       randPiece[1],
+    //       randMove[0],
+    //       randMove[1],
+    //       possibleMoves
+    //     );
+    //     if (this.isValidMove(randMove[0], randMove[1], possibleMoves)) {
+    //       if (
+    //         this.move(
+    //           randPiece[0],
+    //           randPiece[1],
+    //           randMove[0],
+    //           randMove[1],
+    //           possibleMoves
+    //         )
+    //       ) {
+    //         successfulMove = true;
+    //       }
+    //     }
+    //   }
+    //   //}
+    //   return false;
+    // }
+    // if (this.state.turn === "black") {
+    //   let bestScore = -Infinity;
+    //   let bestMove = [];
+    //   for (let i = 0; i < 8; i++) {
+    //     for (let j = 0; j < 8; j++) {
+    //       if (this.getPieceName(i, j) !== "BlankSquare") {
+    //         if (this.getPieceColor(i, j) === "black") {
+    //           let moves = this.getPiece(i, j).props.getMoves(
+    //             i,
+    //             j,
+    //             this.getPieceColor(i, j),
+    //             this.getPiece(i, j).props.isInStartingState
+    //           );
+    //           let score;
+    //           for (let k = 0; k < moves.length; k++) {
+    //             score = this.minimax(this.state.grid, 1, 0, false);
+    //           }
+    //           if (score > bestScore) {
+    //             bestScore = score;
+    //             bestMove = [i, j];
+    //           }
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
+  }
+
+  minimax(board, depth, pointValue, isMaximizing) {
+    if (depth === 3) {
+      //if we run out of depth as specified, that score is the final score we want
+      return pointValue;
+    }
+
+    if (isMaximizing) {
+      let maxScore = -Infinity;
+      let score;
       for (let i = 0; i < 8; i++) {
         for (let j = 0; j < 8; j++) {
-          if (this.getPieceName(i, j) !== "BlankSquare") {
-            if (this.getPieceColor(i, j) !== "white") {
-              blackPieces.push([i, j]);
+          let moves = this.getPiece(i, j).props.getMoves(
+            i,
+            j,
+            this.getPieceColor(i, j),
+            this.getPiece(i, j).props.isInStartingState
+          );
+          moves = this.checkMoves(moves);
+          for (let k = 0; k < moves.length; k++) {
+            //find the new point value of the move to [moves[k][0], moves[k][1]] from piece at [i, j]
+            //create variable for some new board and make the move on that board
+            let newBoard = this.deepCopyGrid(board);
+            if (this.isValidMove(moves[k][0], moves[k][1], moves)) {
+              newBoard = this.move(
+                i,
+                j,
+                moves[k][0],
+                moves[k][1],
+                moves,
+                newBoard
+              );
+              pointValue =
+                pointValue + this.getPointValue(moves[k][0], moves[k][1]);
+              score = this.minimax(newBoard, depth + 1, pointValue, false); //pass new point value in.
+            } else {
+              score = maxScore;
             }
           }
+          //or minus 1 depth depending on designation of direction
+          maxScore = Math.max(score, maxScore);
         }
       }
-      let successfulMove = false;
-      while (!successfulMove) {
-        let randPiece = blackPieces[this.getRandomInt(blackPieces.length)];
-        let possibleMoves = [];
-        if (this.getPieceName(randPiece[0], randPiece[1]) === "Pawn") {
-          possibleMoves = this.getPiece(
-            randPiece[0],
-            randPiece[1]
-          ).props.getMoves(
-            randPiece[0],
-            randPiece[1],
-            this.getPieceColor(randPiece[0], randPiece[1]),
-            this.getPiece(randPiece[0], randPiece[1]).props.isInStartingState
+      return maxScore;
+    } else {
+      let minScore = Infinity;
+      let score;
+      for (let i = 0; i < 8; i++) {
+        for (let j = 0; j < 8; j++) {
+          let moves = this.getPiece(i, j).props.getMoves(
+            i,
+            j,
+            this.getPieceColor(i, j),
+            this.getPiece(i, j).props.isInStartingState
           );
-        } else {
-          possibleMoves = this.getPiece(
-            randPiece[0],
-            randPiece[1]
-          ).props.getMoves(randPiece[0], randPiece[1]);
-        }
-        possibleMoves = this.removeInvalidMoves(
-          randPiece[0],
-          randPiece[1],
-          possibleMoves,
-          this.getPieceName(randPiece[0], randPiece[1])
-        );
-        if (possibleMoves.length > 0) {
-          let num = this.getRandomInt(possibleMoves.length);
-          let randMove = possibleMoves[num];
-          possibleMoves = this.checkMoves(
-            randPiece[0],
-            randPiece[1],
-            randMove[0],
-            randMove[1],
-            possibleMoves
-          );
-          if (this.isValidMove(randMove[0], randMove[1], possibleMoves)) {
-            if (
-              this.move(
-                randPiece[0],
-                randPiece[1],
-                randMove[0],
-                randMove[1],
-                possibleMoves
-              )
-            ) {
-              successfulMove = true;
+          moves = this.checkMoves(moves);
+          for (let k = 0; k < moves.length; k++) {
+            let newBoard = this.deepCopyGrid(board);
+            if (this.isValidMove(moves[k][0], moves[k][1], moves)) {
+              newBoard = this.move(
+                i,
+                j,
+                moves[k][0],
+                moves[k][1],
+                moves,
+                newBoard
+              );
             }
+            pointValue =
+              pointValue - this.getPointValue(moves[k][0], moves[k][1]);
+            score = this.minimax(board, depth + 1, pointValue, true);
           }
+          minScore = Math.min(score, minScore);
         }
       }
-      return false;
+      return minScore;
     }
+  }
+
+  getPointValue(row, col) {
+    let pointValues = {
+      Pawn: 1,
+      Knight: 3,
+      Bishop: 3,
+      Rook: 5,
+      Queen: 9,
+      King: 100,
+      BlankSquare: 0,
+    };
+    return pointValues[this.getPieceName(row, col)];
   }
 
   handleMouseUp() {
@@ -355,7 +479,6 @@ export default class ChessBoard extends Component {
   }
 
   render() {
-    const { grid } = this.state;
     return (
       <div>
         <Modal isOpen={this.state.pawnPromotionModalOpen}>
@@ -383,7 +506,7 @@ export default class ChessBoard extends Component {
           </div>
         </Modal>
         <div className="grid">
-          {grid.map((row, rowIdx) => {
+          {this.state.grid.map((row, rowIdx) => {
             return (
               <div key={rowIdx}>
                 {row.map((node) => {
@@ -400,7 +523,7 @@ export default class ChessBoard extends Component {
 
   componentDidMount() {
     const grid = this.getInitialGrid();
-    this.setState({ grid });
+    this.setState({ grid: grid });
   }
 
   getInitialGrid = () => {
