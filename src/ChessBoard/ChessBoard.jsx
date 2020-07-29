@@ -64,10 +64,7 @@ export default class ChessBoard extends Component {
     };
   }
 
-  checkMoves(selectedRow, selectedCol, row, col, moves) {
-    if (this.isSameColor(selectedRow, selectedCol, row, col)) {
-      moves.splice(this.indexOfMove(row, col, moves), 1);
-    }
+  checkMoves(selectedRow, selectedCol, moves) {
     let enPassantMoves = undefined;
     if (this.getPieceName(selectedRow, selectedCol) === "Pawn") {
       moves = this.checkPawnTake(
@@ -149,7 +146,7 @@ export default class ChessBoard extends Component {
 
   move(selectedRow, selectedCol, row, col, moves, grid) {
     console.log(this.getPieceName(row, col));
-    //this.checkMoves(selectedRow, selectedCol, row, col, moves);
+    //this.checkMoves(selectedRow, selectedCol, moves);
 
     // if (enPassantMoves !== undefined) {
     //   let newBlankPiece = <BlankSquare></BlankSquare>;
@@ -265,8 +262,6 @@ export default class ChessBoard extends Component {
       moves = this.checkMoves(
         this.state.selectedRow,
         this.state.selectedCol,
-        row,
-        col,
         moves
       );
       if (this.isValidMove(row, col, moves)) {
@@ -400,7 +395,7 @@ export default class ChessBoard extends Component {
             this.getPieceColor(i, j),
             this.getPiece(i, j).props.isInStartingState
           );
-          moves = this.checkMoves(moves);
+          moves = this.checkMoves(i, j, moves);
           for (let k = 0; k < moves.length; k++) {
             //find the new point value of the move to [moves[k][0], moves[k][1]] from piece at [i, j]
             //create variable for some new board and make the move on that board
@@ -437,7 +432,7 @@ export default class ChessBoard extends Component {
             this.getPieceColor(i, j),
             this.getPiece(i, j).props.isInStartingState
           );
-          moves = this.checkMoves(moves);
+          moves = this.checkMoves(i, j, moves);
           for (let k = 0; k < moves.length; k++) {
             let newBoard = this.deepCopyGrid(board);
             if (this.isValidMove(moves[k][0], moves[k][1], moves)) {
