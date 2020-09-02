@@ -64,24 +64,25 @@ export default class ChessBoard extends Component {
     };
   }
 
-  checkMoves(selectedRow, selectedCol, moves) {
+  checkMoves(selectedRow, selectedCol, moves, grid) {
     let enPassantMoves = undefined;
-    if (this.getPieceName(selectedRow, selectedCol) === "Pawn") {
+    if (this.getPieceName(selectedRow, selectedCol, grid) === "Pawn") {
       moves = this.checkPawnTake(
         selectedRow,
         selectedCol,
         moves,
-        this.getPieceColor(selectedRow, selectedCol)
+        this.getPieceColor(selectedRow, selectedCol, grid),
+        grid
       );
-      //this.updateEnPassantState(selectedRow, selectedCol, row, col);
+      //this.updateEnPassantState(selectedRow, selectedCol, row, col, grid);
       enPassantMoves = this.addEnPassantMoves(
         selectedRow,
         selectedCol,
-        this.getPieceColor(selectedRow, selectedCol)
+        this.getPieceColor(selectedRow, selectedCol, grid)
       );
     }
 
-    // if (this.ifCastle(row, col)) {
+    // if (this.ifCastle(row, col, grid)) {
     //   this.setSelectedMovesWhite(this.state.moves, false);
     //   this.setState({ isSelected: false });
     //   return false;
@@ -91,7 +92,8 @@ export default class ChessBoard extends Component {
       selectedRow,
       selectedCol,
       moves,
-      this.getPieceName(selectedRow, selectedCol)
+      this.getPieceName(selectedRow, selectedCol, grid),
+      grid
     );
 
     // if (moves === []) {
@@ -145,7 +147,6 @@ export default class ChessBoard extends Component {
   }
 
   move(selectedRow, selectedCol, row, col, moves, grid) {
-    console.log(this.getPieceName(row, col));
     //this.checkMoves(selectedRow, selectedCol, moves);
 
     // if (enPassantMoves !== undefined) {
@@ -164,11 +165,14 @@ export default class ChessBoard extends Component {
     // }
     let newBlankPiece = <BlankSquare></BlankSquare>;
     this.setState({ isSelected: false });
-    this.updateEnPassantState(selectedRow, selectedCol, row, col);
-    this.updatePawnPromotionState(row, col);
-    this.checkRookUpdatesCastle(selectedRow, selectedCol);
-    let pieceToMove = this.getPiece(selectedRow, selectedCol);
-    this.setSelectedMovesWhite(moves, false);
+    //this.updateEnPassantState(selectedRow, selectedCol, row, col, grid);
+    //this.updatePawnPromotionState(row, col);
+    //this.checkRookUpdatesCastle(selectedRow, selectedCol, grid);
+    //console.log(selectedRow, selectedCol);
+    let pieceToMove = this.getPiece(selectedRow, selectedCol, grid);
+    if (this.state.turn === "white") {
+      this.setSelectedMovesWhite(moves, false);
+    }
     grid[row][col] = this.createChessSquare(
       row,
       col,
@@ -183,15 +187,15 @@ export default class ChessBoard extends Component {
     if (this.state.turn === "white") {
       this.setState({ turn: "black" });
     } else {
-      //this.updatePiece(randMove[0], randMove[1]);
+      this.updatePiece(row, col, grid);
       this.setState({ turn: "white" });
     }
     return grid;
   }
 
-  checkRookUpdatesCastle(selectedRow, selectedCol) {
-    if (this.getPieceName(selectedRow, selectedCol) === "Rook") {
-      if (this.getPieceColor(selectedRow, selectedCol) === "black") {
+  checkRookUpdatesCastle(selectedRow, selectedCol, grid) {
+    if (this.getPieceName(selectedRow, selectedCol, grid) === "Rook") {
+      if (this.getPieceColor(selectedRow, selectedCol, grid) === "black") {
         if (selectedRow === 7 && selectedCol === 7) {
           this.setState({
             blackCanCastleKingSide: false,
@@ -215,12 +219,12 @@ export default class ChessBoard extends Component {
     }
   }
 
-  selectPiece(row, col) {
+  selectPiece(row, col, grid) {
     this.setState({
       selectedRow: row,
       selectedCol: col,
-      selectedPieceName: this.getPieceName(row, col),
-      selctedNode: this.getNode(row, col),
+      selectedPieceName: this.getPieceName(row, col, grid),
+      selctedNode: this.getNode(row, col, this.state.grid),
       mouseIsPressed: true,
       isSelected: true,
     });
@@ -230,31 +234,11 @@ export default class ChessBoard extends Component {
     return Math.floor(Math.random() * Math.floor(max));
   }
 
-  blacksTurn() {
-    let spacesWithBlackPieces = [];
-    for (let i = 0; i <= 7; i++) {
-      for (let j = 0; j <= 7; j++) {
-        if (this.getPieceColor(i, j) === "black") {
-          spacesWithBlackPieces.push([i, j]);
-        }
-      }
-    }
-    let coordinates =
-      spacesWithBlackPieces[this.getRandomInt(spacesWithBlackPieces.length)];
-    let chosenPiece = this.getPiece(coordinates[0], coordinates[1]);
-    //let someMoves = chosenPiece.getMoves(coordinates[0], coordinates[1]);
-  }
-
   handleMouseDown(row, col) {
-    //this.child = this.getPiece(row, col);
-    // if (this.getPieceName(row, col) !== "BlankSquare") {
-    //   this.getPiece(row, col).ref.current.getMoves(row, col);
-    // }
-    //this.child.current.getAlert();
     if (this.state.isSelected) {
-      if (this.state.selectedNode !== this.getNode(row, col)) {
-        if (!this.isEmptySquare(row, col)) {
-          this.selectPiece(row, col);
+      if (this.state.selectedNode !== this.getNode(row, col, this.state.grid)) {
+        if (!this.isEmptySquare(row, col, this.state.grid)) {
+          this.selectPiece(row, col, this.state.grid);
           this.setSelectedMovesWhite(this.state.moves, false);
         }
       }
@@ -262,7 +246,8 @@ export default class ChessBoard extends Component {
       moves = this.checkMoves(
         this.state.selectedRow,
         this.state.selectedCol,
-        moves
+        moves,
+        this.state.grid
       );
       if (this.isValidMove(row, col, moves)) {
         this.move(
@@ -278,11 +263,11 @@ export default class ChessBoard extends Component {
         this.setState({ isSelected: false });
       }
     } else {
-      if (!this.isEmptySquare(row, col)) {
-        this.selectPiece(row, col);
+      if (!this.isEmptySquare(row, col, this.state.grid)) {
+        this.selectPiece(row, col, this.state.grid);
       }
     }
-    this.updatePiece(row, col);
+    this.updatePiece(row, col, this.state.grid);
   }
 
   componentDidUpdate() {
@@ -350,35 +335,64 @@ export default class ChessBoard extends Component {
     //   //}
     //   return false;
     // }
-    // if (this.state.turn === "black") {
-    //   let bestScore = -Infinity;
-    //   let bestMove = [];
-    //   for (let i = 0; i < 8; i++) {
-    //     for (let j = 0; j < 8; j++) {
-    //       if (this.getPieceName(i, j) !== "BlankSquare") {
-    //         if (this.getPieceColor(i, j) === "black") {
-    //           let moves = this.getPiece(i, j).props.getMoves(
-    //             i,
-    //             j,
-    //             this.getPieceColor(i, j),
-    //             this.getPiece(i, j).props.isInStartingState
-    //           );
-    //           let score;
-    //           for (let k = 0; k < moves.length; k++) {
-    //             score = this.minimax(this.state.grid, 1, 0, false);
-    //           }
-    //           if (score > bestScore) {
-    //             bestScore = score;
-    //             bestMove = [i, j];
-    //           }
-    //         }
-    //       }
-    //     }
-    //   }
-    // }
+    if (this.state.turn === "black") {
+      let bestScore = -Infinity;
+      let bestMove = [];
+      let bestPiece = [];
+      for (let i = 0; i < 8; i++) {
+        for (let j = 0; j < 8; j++) {
+          if (this.getPieceName(i, j, this.state.grid) !== "BlankSquare") {
+            if (this.getPieceColor(i, j, this.state.grid) === "black") {
+              let moves = this.getPiece(i, j, this.state.grid).props.getMoves(
+                i,
+                j,
+                this.getPieceColor(i, j, this.state.grid),
+                this.getPiece(i, j, this.state.grid).props.isInStartingState
+              );
+              moves = this.checkMoves(i, j, moves, this.state.grid);
+              let score = 1;
+              for (let k = 0; k < moves.length; k++) {
+                let newBoard = this.deepCopyGrid(this.state.grid);
+                if (this.isValidMove(moves[k][0], moves[k][1], moves)) {
+                  newBoard = this.move(
+                    i,
+                    j,
+                    moves[k][0],
+                    moves[k][1],
+                    moves,
+                    newBoard
+                  );
+                }
+                score = this.minimax(newBoard, 0, 0, 0, 0, false);
+                //console.log("score", score);
+                if (score > bestScore) {
+                  //console.log("score", score);
+                  bestScore = score;
+                  bestMove = [moves[k][0], moves[k][1]];
+                  bestPiece = [i, j];
+                }
+              }
+            }
+          }
+        }
+      }
+      //console.log(bestMove);
+      if (bestMove[0] !== undefined) {
+        this.move(
+          bestPiece[0],
+          bestPiece[1],
+          bestMove[0],
+          bestMove[1],
+          [bestMove],
+          this.state.grid
+        );
+        this.setState({ turn: "white" });
+      }
+    }
   }
 
-  minimax(board, depth, pointValue, isMaximizing) {
+  minimax(board, depth, pointValue, alpha, beta, isMaximizing) {
+    //return this.getRandomInt(10);
     if (depth === 3) {
       //if we run out of depth as specified, that score is the final score we want
       return pointValue;
@@ -389,84 +403,190 @@ export default class ChessBoard extends Component {
       let score;
       for (let i = 0; i < 8; i++) {
         for (let j = 0; j < 8; j++) {
-          let moves = this.getPiece(i, j).props.getMoves(
-            i,
-            j,
-            this.getPieceColor(i, j),
-            this.getPiece(i, j).props.isInStartingState
-          );
-          moves = this.checkMoves(i, j, moves);
-          for (let k = 0; k < moves.length; k++) {
-            //find the new point value of the move to [moves[k][0], moves[k][1]] from piece at [i, j]
-            //create variable for some new board and make the move on that board
-            let newBoard = this.deepCopyGrid(board);
-            if (this.isValidMove(moves[k][0], moves[k][1], moves)) {
-              newBoard = this.move(
-                i,
-                j,
-                moves[k][0],
-                moves[k][1],
-                moves,
-                newBoard
-              );
-              pointValue =
-                pointValue + this.getPointValue(moves[k][0], moves[k][1]);
-              score = this.minimax(newBoard, depth + 1, pointValue, false); //pass new point value in.
-            } else {
-              score = maxScore;
+          if (this.getPieceColor(i, j, board) === "black") {
+            let moves = this.getPiece(i, j, board).props.getMoves(
+              i,
+              j,
+              this.getPieceColor(i, j, board),
+              this.getPiece(i, j, board).props.isInStartingState
+            );
+            moves = this.checkMoves(i, j, moves, board);
+            for (let k = 0; k < moves.length; k++) {
+              let newBoard = this.deepCopyGrid(board);
+              if (this.isValidMove(moves[k][0], moves[k][1], moves)) {
+                pointValue =
+                  pointValue +
+                  this.getPointValue(i, j, moves[k][0], moves[k][1], newBoard);
+                newBoard = this.move(
+                  i,
+                  j,
+                  moves[k][0],
+                  moves[k][1],
+                  moves,
+                  newBoard
+                );
+                score = this.minimax(
+                  newBoard,
+                  depth + 1,
+                  pointValue,
+                  alpha,
+                  beta,
+                  false
+                );
+                maxScore = Math.max(score, maxScore);
+                alpha = Math.max(alpha, score);
+                if (beta < alpha) {
+                  break;
+                }
+              }
             }
           }
-          //or minus 1 depth depending on designation of direction
-          maxScore = Math.max(score, maxScore);
         }
       }
       return maxScore;
     } else {
-      let minScore = Infinity;
+      var minScore = Infinity;
       let score;
       for (let i = 0; i < 8; i++) {
         for (let j = 0; j < 8; j++) {
-          let moves = this.getPiece(i, j).props.getMoves(
-            i,
-            j,
-            this.getPieceColor(i, j),
-            this.getPiece(i, j).props.isInStartingState
-          );
-          moves = this.checkMoves(i, j, moves);
-          for (let k = 0; k < moves.length; k++) {
-            let newBoard = this.deepCopyGrid(board);
-            if (this.isValidMove(moves[k][0], moves[k][1], moves)) {
-              newBoard = this.move(
-                i,
-                j,
-                moves[k][0],
-                moves[k][1],
-                moves,
-                newBoard
-              );
+          if (this.getPieceColor(i, j, board) === "white") {
+            let moves = this.getPiece(i, j, board).props.getMoves(
+              i,
+              j,
+              this.getPieceColor(i, j, board),
+              this.getPiece(i, j, board).props.isInStartingState
+            );
+            moves = this.checkMoves(i, j, moves, board);
+            for (let k = 0; k < moves.length; k++) {
+              let newBoard = this.deepCopyGrid(board);
+              if (this.isValidMove(moves[k][0], moves[k][1], moves)) {
+                pointValue =
+                  pointValue -
+                  this.getPointValue(i, j, moves[k][0], moves[k][1], newBoard);
+                //console.log("pointValue", pointValue);
+                newBoard = this.move(
+                  i,
+                  j,
+                  moves[k][0],
+                  moves[k][1],
+                  moves,
+                  newBoard
+                );
+                score = this.minimax(
+                  board,
+                  depth + 1,
+                  pointValue,
+                  alpha,
+                  beta,
+                  true
+                );
+                minScore = Math.min(score, minScore);
+                beta = Math.min(beta, score);
+                if (beta < alpha) {
+                  break;
+                }
+              }
             }
-            pointValue =
-              pointValue - this.getPointValue(moves[k][0], moves[k][1]);
-            score = this.minimax(board, depth + 1, pointValue, true);
           }
-          minScore = Math.min(score, minScore);
         }
       }
       return minScore;
     }
   }
 
-  getPointValue(row, col) {
+  getPointValue(selectedRow, selectedCol, row, col, grid) {
     let pointValues = {
-      Pawn: 1,
-      Knight: 3,
-      Bishop: 3,
-      Rook: 5,
-      Queen: 9,
-      King: 100,
+      Pawn: 10,
+      Knight: 30,
+      Bishop: 30,
+      Rook: 50,
+      Queen: 90,
+      King: 1000,
       BlankSquare: 0,
     };
-    return pointValues[this.getPieceName(row, col)];
+
+    let pawnPieceSquare = [
+      [0, 0, 0, 0, 0, 0, 0, 0],
+      [50, 50, 50, 50, 50, 50, 50, 50],
+      [10, 10, 20, 30, 30, 20, 10, 10],
+      [5, 5, 10, 27, 27, 10, 5, 5],
+      [0, 0, 0, 25, 25, 0, 0, 0],
+      [5, -5, -10, 0, 0, -10, -5, 5],
+      [5, 10, 10, -25, -25, 10, 10, 5],
+      [0, 0, 0, 0, 0, 0, 0, 0],
+    ];
+
+    let knightPieceSquare = [
+      [-50, -40, -30, -30, -30, -30, -40, -50],
+      [-40, -20, 0, 0, 0, 0, -20, -40],
+      [-30, 0, 10, 15, 15, 10, 0, -30],
+      [-30, 5, 15, 20, 20, 15, 5, -30],
+      [-30, 0, 15, 20, 20, 15, 0, -30],
+      [-30, 5, 10, 15, 15, 10, 5, -30],
+      [-40, -20, 0, 5, 5, 0, -20, -40],
+      [-50, -40, -20, -30, -30, -20, -40, -50],
+    ];
+
+    let bishopPieceSquare = [
+      [-20, -10, -10, -10, -10, -10, -10, -20],
+      [-10, 0, 0, 0, 0, 0, 0, -10],
+      [-10, 0, 5, 10, 10, 5, 0, -10],
+      [-10, 5, 5, 10, 10, 5, 5, -10],
+      [-10, 0, 10, 10, 10, 10, 0, -10],
+      [-10, 10, 10, 10, 10, 10, 10, -10],
+      [-10, 5, 0, 0, 0, 0, 5, -10],
+      [-20, -10, -40, -10, -10, -40, -10, -20],
+    ];
+
+    let rookPieceSquare = [
+      [0, 0, 0, 0, 0, 0, 0, 0],
+      [10, 20, 20, 20, 20, 20, 20, 10],
+      [-10, 0, 0, 0, 0, 0, 0, -10],
+      [-10, 0, 0, 0, 0, 0, 0, -10],
+      [-10, 0, 0, 0, 0, 0, 0, -10],
+      [-10, 0, 0, 0, 0, 0, 0, -10],
+      [-10, 0, 0, 0, 0, 0, 0, -10],
+      [-30, 30, 40, 10, 10, 0, 0, -30],
+    ];
+
+    let queenPieceSquare = [
+      [-40, -20, -20, -10, -10, -20, -20, -40],
+      [-20, 0, 0, 0, 0, 0, 0, -20],
+      [-20, 0, 10, 10, 10, 10, 0, -20],
+      [-10, 0, 10, 10, 10, 10, 0, -10],
+      [0, 0, 10, 10, 10, 10, 0, -10],
+      [-20, 10, 10, 10, 10, 10, 0, -20],
+      [-20, 0, 10, 0, 0, 0, 0, -20],
+      [-40, -20, -20, -10, -10, -20, -20, -40],
+    ];
+
+    let kingPieceSquare = [
+      [-60, -80, -80, -20, -20, -80, -80, -60],
+      [-60, -80, -80, -20, -20, -80, -80, -60],
+      [-60, -80, -80, -20, -20, -80, -80, -60],
+      [-60, -80, -80, -20, -20, -80, -80, -60],
+      [-40, -60, -60, -80, -80, -60, -60, -40],
+      [-20, -40, -40, -40, -40, -40, -40, -20],
+      [40, 40, 0, 0, 0, 0, 40, 40],
+      [40, 60, 20, 0, 0, 20, 60, 40],
+    ];
+
+    let points = pointValues[this.getPieceName(row, col, grid)];
+
+    if (this.getPieceName(selectedRow, selectedCol, grid) === "Pawn") {
+      points = points + pawnPieceSquare[selectedRow][selectedCol];
+    } else if (this.getPieceName(selectedRow, selectedCol, grid) === "Knight") {
+      points = points + knightPieceSquare[selectedRow][selectedCol];
+    } else if (this.getPieceName(selectedRow, selectedCol, grid) === "Bishop") {
+      points = points + bishopPieceSquare[selectedRow][selectedCol];
+    } else if (this.getPieceName(selectedRow, selectedCol, grid) === "Rook") {
+      points = points + rookPieceSquare[selectedRow][selectedCol];
+    } else if (this.getPieceName(selectedRow, selectedCol, grid) === "King") {
+      points = points + kingPieceSquare[selectedRow][selectedCol];
+    } else if (this.getPieceName(selectedRow, selectedCol, grid) === "Queen") {
+      points = points + queenPieceSquare[selectedRow][selectedCol];
+    }
+    return points;
   }
 
   handleMouseUp() {
@@ -535,13 +655,19 @@ export default class ChessBoard extends Component {
     return grid;
   };
 
-  removeInvalidMoves(selectedRow, selectedCol, moves, selectedPieceName) {
+  removeInvalidMoves(selectedRow, selectedCol, moves, selectedPieceName, grid) {
     for (let i = 0; i < moves.length; i++) {
       if (!this.isValidCoordinates(moves[i][0], moves[i][1])) {
         moves.splice(i, 1);
         i = i - 1;
       } else if (
-        this.isSameColor(selectedRow, selectedCol, moves[i][0], moves[i][1])
+        this.isSameColor(
+          selectedRow,
+          selectedCol,
+          moves[i][0],
+          moves[i][1],
+          grid
+        )
       ) {
         // console.log(
         //   "removing same color move",
@@ -559,10 +685,10 @@ export default class ChessBoard extends Component {
       }
     }
     if (selectedPieceName !== "Knight") {
-      moves = this.isIllegalSlant(selectedRow, selectedCol, moves);
+      moves = this.isIllegalSlant(selectedRow, selectedCol, moves, grid);
 
       if (selectedPieceName !== "Bishop") {
-        moves = this.isIllegalStraight(selectedRow, selectedCol, moves);
+        moves = this.isIllegalStraight(selectedRow, selectedCol, moves, grid);
       }
     }
     return moves;
@@ -588,17 +714,17 @@ export default class ChessBoard extends Component {
     return -1;
   }
 
-  checkPawnTake(selectedRow, selectedCol, moves, color) {
+  checkPawnTake(selectedRow, selectedCol, moves, color, grid) {
     if (color === "black") {
       if (this.isValidCoordinates(selectedRow - 1, selectedCol + 1)) {
-        if (!this.isEmptySquare(selectedRow - 1, selectedCol + 1)) {
+        if (!this.isEmptySquare(selectedRow - 1, selectedCol + 1, grid)) {
           if (
             !this.isSameColor(
               selectedRow,
               selectedCol,
               selectedRow - 1,
               selectedCol + 1,
-              this.state
+              grid
             )
           ) {
             moves.push([selectedRow - 1, selectedCol + 1]);
@@ -606,33 +732,33 @@ export default class ChessBoard extends Component {
         }
       }
       if (this.isValidCoordinates(selectedRow - 1, selectedCol - 1)) {
-        if (!this.isEmptySquare(selectedRow - 1, selectedCol - 1)) {
+        if (!this.isEmptySquare(selectedRow - 1, selectedCol - 1, grid)) {
           if (
             !this.isSameColor(
               selectedRow,
               selectedCol,
               selectedRow - 1,
               selectedCol - 1,
-              this.state
+              grid
             )
           ) {
             moves.push([selectedRow - 1, selectedCol - 1]);
           }
         }
       }
-      if (!this.isEmptySquare(selectedRow - 1, selectedCol)) {
+      if (!this.isEmptySquare(selectedRow - 1, selectedCol, grid)) {
         moves.splice(0, 1); //removes vertical take of pawn if piece ahead
       }
     } else {
       if (this.isValidCoordinates(selectedRow + 1, selectedCol + 1)) {
-        if (!this.isEmptySquare(selectedRow + 1, selectedCol + 1)) {
+        if (!this.isEmptySquare(selectedRow + 1, selectedCol + 1, grid)) {
           if (
             !this.isSameColor(
               selectedRow,
               selectedCol,
               selectedRow + 1,
               selectedCol + 1,
-              this.state
+              grid
             )
           ) {
             moves.push([selectedRow + 1, selectedCol + 1]);
@@ -640,21 +766,21 @@ export default class ChessBoard extends Component {
         }
       }
       if (this.isValidCoordinates(selectedRow + 1, selectedCol - 1)) {
-        if (!this.isEmptySquare(selectedRow + 1, selectedCol - 1)) {
+        if (!this.isEmptySquare(selectedRow + 1, selectedCol - 1, grid)) {
           if (
             !this.isSameColor(
               selectedRow,
               selectedCol,
               selectedRow + 1,
               selectedCol - 1,
-              this.state
+              grid
             )
           ) {
             moves.push([selectedRow + 1, selectedCol - 1]);
           }
         }
       }
-      if (!this.isEmptySquare(selectedRow + 1, selectedCol)) {
+      if (!this.isEmptySquare(selectedRow + 1, selectedCol, grid)) {
         moves.splice(0, 1); //removes vertical take of pawn if piece ahead
       }
     }
@@ -662,12 +788,15 @@ export default class ChessBoard extends Component {
     return moves;
   }
 
-  castle(row, col, color, side) {
-    let newGrid = this.state.grid.slice();
+  castle(row, col, color, side, grid) {
+    let newGrid = grid.slice();
     if (color === "black") {
       if (side === "kingSide") {
         if (row === 7 && col === 6) {
-          if (this.isEmptySquare(7, 5) && this.isEmptySquare(7, 6)) {
+          if (
+            this.isEmptySquare(7, 5, grid) &&
+            this.isEmptySquare(7, 6, grid)
+          ) {
             newGrid[7][6] = this.createChessSquare(
               7,
               6,
@@ -698,9 +827,9 @@ export default class ChessBoard extends Component {
       } else {
         if (row === 7 && col === 2) {
           if (
-            this.isEmptySquare(7, 1) &&
-            this.isEmptySquare(7, 2) &&
-            this.isEmptySquare(7, 3)
+            this.isEmptySquare(7, 1, grid) &&
+            this.isEmptySquare(7, 2, grid) &&
+            this.isEmptySquare(7, 3, grid)
           ) {
             newGrid[7][2] = this.createChessSquare(
               7,
@@ -733,7 +862,10 @@ export default class ChessBoard extends Component {
     } else {
       if (side === "kingSide") {
         if (row === 0 && col === 6) {
-          if (this.isEmptySquare(0, 5) && this.isEmptySquare(0, 6)) {
+          if (
+            this.isEmptySquare(0, 5, grid) &&
+            this.isEmptySquare(0, 6, grid)
+          ) {
             newGrid[0][6] = this.createChessSquare(
               0,
               6,
@@ -764,9 +896,9 @@ export default class ChessBoard extends Component {
       } else {
         if (row === 0 && col === 2) {
           if (
-            this.isEmptySquare(0, 1) &&
-            this.isEmptySquare(0, 2) &&
-            this.isEmptySquare(0, 3)
+            this.isEmptySquare(0, 1, grid) &&
+            this.isEmptySquare(0, 2, grid) &&
+            this.isEmptySquare(0, 3, grid)
           ) {
             newGrid[0][2] = this.createChessSquare(
               0,
@@ -811,11 +943,15 @@ export default class ChessBoard extends Component {
     }
   }
 
-  ifCastle(row, col) {
+  ifCastle(row, col, grid) {
     if (this.state.selectedPieceName === "King") {
       if (
         this.checkCastleState(
-          this.getPieceColor(this.state.selectedRow, this.state.selectedCol),
+          this.getPieceColor(
+            this.state.selectedRow,
+            this.state.selectedCol,
+            grid
+          ),
           this.determineCastleSide(row, col)
         )
       ) {
@@ -823,8 +959,13 @@ export default class ChessBoard extends Component {
           this.castle(
             row,
             col,
-            this.getPieceColor(this.state.selectedRow, this.state.selectedCol),
-            this.determineCastleSide(row, col)
+            this.getPieceColor(
+              this.state.selectedRow,
+              this.state.selectedCol,
+              grid
+            ),
+            this.determineCastleSide(row, col),
+            grid
           )
         ) {
           return true;
@@ -864,17 +1005,17 @@ export default class ChessBoard extends Component {
     return enPassantMoves;
   }
 
-  updateEnPassantState(selectedRow, selectedCol, row, col) {
-    if (this.getPieceColor(selectedRow, selectedCol) === "black") {
+  updateEnPassantState(selectedRow, selectedCol, row, col, grid) {
+    if (this.getPieceColor(selectedRow, selectedCol, grid) === "black") {
       if (Math.abs(selectedRow - row) === 2) {
         let currentEnPassant = this.state.blackEnPassant;
         if (this.isValidCoordinates(4, col - 1)) {
-          if (!this.isEmptySquare(4, col - 1)) {
+          if (!this.isEmptySquare(4, col - 1, grid)) {
             currentEnPassant[col][0] = true;
           }
         }
         if (this.isValidCoordinates(4, col + 1)) {
-          if (!this.isEmptySquare(4, col + 1)) {
+          if (!this.isEmptySquare(4, col + 1, grid)) {
             currentEnPassant[col][1] = true;
           }
         }
@@ -889,12 +1030,12 @@ export default class ChessBoard extends Component {
       if (Math.abs(selectedRow - row) === 2) {
         let currentEnPassant = this.state.whiteEnPassant;
         if (this.isValidCoordinates(3, col - 1)) {
-          if (!this.isEmptySquare(3, col - 1)) {
+          if (!this.isEmptySquare(3, col - 1, grid)) {
             currentEnPassant[col][0] = true;
           }
         }
         if (this.isValidCoordinates(3, col + 1)) {
-          if (!this.isEmptySquare(3, col + 1)) {
+          if (!this.isEmptySquare(3, col + 1, grid)) {
             currentEnPassant[col][1] = true;
           }
         }
@@ -943,7 +1084,7 @@ export default class ChessBoard extends Component {
     this.setState({ grid: newGrid, pawnPromotionModalOpen: false });
   }
 
-  isIllegalStraight(selectedRow, selectedCol, moves) {
+  isIllegalStraight(selectedRow, selectedCol, moves, grid) {
     let isIllegalJump = false;
     for (let i = 1; i <= 7; i++) {
       if (isIllegalJump) {
@@ -953,7 +1094,7 @@ export default class ChessBoard extends Component {
         }
       }
       if (this.isValidCoordinates(selectedRow, selectedCol + i)) {
-        if (!this.isEmptySquare(selectedRow, selectedCol + i)) {
+        if (!this.isEmptySquare(selectedRow, selectedCol + i, grid)) {
           isIllegalJump = true;
         }
       }
@@ -967,7 +1108,7 @@ export default class ChessBoard extends Component {
         }
       }
       if (this.isValidCoordinates(selectedRow, selectedCol - i)) {
-        if (!this.isEmptySquare(selectedRow, selectedCol - i)) {
+        if (!this.isEmptySquare(selectedRow, selectedCol - i, grid)) {
           isIllegalJump = true;
         }
       }
@@ -981,7 +1122,7 @@ export default class ChessBoard extends Component {
         }
       }
       if (this.isValidCoordinates(selectedRow + i, selectedCol)) {
-        if (!this.isEmptySquare(selectedRow + i, selectedCol)) {
+        if (!this.isEmptySquare(selectedRow + i, selectedCol, grid)) {
           isIllegalJump = true;
         }
       }
@@ -995,7 +1136,7 @@ export default class ChessBoard extends Component {
         }
       }
       if (this.isValidCoordinates(selectedRow - i, selectedCol)) {
-        if (!this.isEmptySquare(selectedRow - i, selectedCol)) {
+        if (!this.isEmptySquare(selectedRow - i, selectedCol, grid)) {
           isIllegalJump = true;
         }
       }
@@ -1003,7 +1144,7 @@ export default class ChessBoard extends Component {
     return moves;
   }
 
-  isIllegalSlant(selectedRow, selectedCol, moves) {
+  isIllegalSlant(selectedRow, selectedCol, moves, grid) {
     let isIllegalJump = false;
     for (let i = 1; i <= 7; i++) {
       if (isIllegalJump) {
@@ -1013,7 +1154,7 @@ export default class ChessBoard extends Component {
         }
       }
       if (this.isValidCoordinates(selectedRow + i, selectedCol + i)) {
-        if (!this.isEmptySquare(selectedRow + i, selectedCol + i)) {
+        if (!this.isEmptySquare(selectedRow + i, selectedCol + i, grid)) {
           isIllegalJump = true;
         }
       }
@@ -1027,7 +1168,7 @@ export default class ChessBoard extends Component {
         }
       }
       if (this.isValidCoordinates(selectedRow + i, selectedCol - i)) {
-        if (!this.isEmptySquare(selectedRow + i, selectedCol - i)) {
+        if (!this.isEmptySquare(selectedRow + i, selectedCol - i, grid)) {
           isIllegalJump = true;
         }
       }
@@ -1041,7 +1182,7 @@ export default class ChessBoard extends Component {
         }
       }
       if (this.isValidCoordinates(selectedRow - i, selectedCol + i)) {
-        if (!this.isEmptySquare(selectedRow - i, selectedCol + i)) {
+        if (!this.isEmptySquare(selectedRow - i, selectedCol + i, grid)) {
           isIllegalJump = true;
         }
       }
@@ -1055,7 +1196,7 @@ export default class ChessBoard extends Component {
         }
       }
       if (this.isValidCoordinates(selectedRow - i, selectedCol - i)) {
-        if (!this.isEmptySquare(selectedRow - i, selectedCol - i)) {
+        if (!this.isEmptySquare(selectedRow - i, selectedCol - i, grid)) {
           isIllegalJump = true;
         }
       }
@@ -1105,18 +1246,18 @@ export default class ChessBoard extends Component {
     return isDifferentSquare;
   }
 
-  isEmptySquare(row, col) {
-    if (this.getPieceName(row, col) === "BlankSquare") {
+  isEmptySquare(row, col, grid) {
+    if (this.getPieceName(row, col, grid) === "BlankSquare") {
       return true;
     }
     return false;
   }
 
-  isSameColor(selectedRow, selectedCol, row, col) {
-    if (!this.isEmptySquare(row, col)) {
+  isSameColor(selectedRow, selectedCol, row, col, grid) {
+    if (!this.isEmptySquare(row, col, grid)) {
       if (
-        this.state.grid[row][col].Node.props.piece.props.color ===
-        this.state.grid[selectedRow][selectedCol].Node.props.piece.props.color
+        grid[row][col].Node.props.piece.props.color ===
+        grid[selectedRow][selectedCol].Node.props.piece.props.color
       ) {
         return true;
       }
@@ -1145,31 +1286,31 @@ export default class ChessBoard extends Component {
     );
   }
 
-  updatePiece(row, col) {
-    let piece = this.state.grid[row][col].Node.props.piece;
+  updatePiece(row, col, grid) {
+    let piece = grid[row][col].Node.props.piece;
     let newPiece = undefined;
-    if (this.getPieceName(row, col) === "Pawn") {
+    if (this.getPieceName(row, col, grid) === "Pawn") {
       newPiece = this.createPawn(row, col, piece.props.color, false);
-    } else if (this.getPieceName(row, col) === "Rook") {
+    } else if (this.getPieceName(row, col, grid) === "Rook") {
       newPiece = this.createRook(row, col, piece.props.color);
-    } else if (this.getPieceName(row, col) === "Knight") {
+    } else if (this.getPieceName(row, col, grid) === "Knight") {
       newPiece = this.createKnight(row, col, piece.props.color);
-    } else if (this.getPieceName(row, col) === "Bishop") {
+    } else if (this.getPieceName(row, col, grid) === "Bishop") {
       newPiece = this.createBishop(row, col, piece.props.color);
-    } else if (this.getPieceName(row, col) === "Queen") {
+    } else if (this.getPieceName(row, col, grid) === "Queen") {
       newPiece = this.createQueen(row, col, piece.props.color);
-    } else if (this.getPieceName(row, col) === "King") {
+    } else if (this.getPieceName(row, col, grid) === "King") {
       newPiece = this.createKing(row, col, piece.props.color);
     } else {
       newPiece = this.createBlankSquare();
     }
-    let newGrid = this.state.grid.slice();
-    newGrid[row][col] = this.createChessSquare(
+    //let newGrid = grid.slice();
+    grid[row][col] = this.createChessSquare(
       row,
       col,
       this.createNode(row, col, newPiece, false)
     );
-    this.setState({ grid: newGrid });
+    //this.setState({ grid: newGrid });
   }
 
   getStartingPiece(row, col) {
@@ -1358,18 +1499,19 @@ export default class ChessBoard extends Component {
     }
   }
 
-  updateCastleMoves(moves) {
+  updateCastleMoves(moves, grid) {
     let color = this.getPieceColor(
       this.state.selectedRow,
-      this.state.selectedCol
+      this.state.selectedCol,
+      grid
     );
     if (this.checkCastleState(color, "kingSide")) {
       if (color === "black") {
-        if (this.isEmptySquare(7, 5) && this.isEmptySquare(7, 6)) {
+        if (this.isEmptySquare(7, 5, grid) && this.isEmptySquare(7, 6, grid)) {
           moves.push([7, 6]);
         }
       } else {
-        if (this.isEmptySquare(0, 5) && this.isEmptySquare(0, 6)) {
+        if (this.isEmptySquare(0, 5, grid) && this.isEmptySquare(0, 6, grid)) {
           moves.push([0, 6]);
         }
       }
@@ -1377,17 +1519,17 @@ export default class ChessBoard extends Component {
     if (this.checkCastleState(color, "queenSide")) {
       if (color === "black") {
         if (
-          this.isEmptySquare(7, 1) &&
-          this.isEmptySquare(7, 2) &&
-          this.isEmptySquare(7, 3)
+          this.isEmptySquare(7, 1, grid) &&
+          this.isEmptySquare(7, 2, grid) &&
+          this.isEmptySquare(7, 3, grid)
         ) {
           moves.push([7, 2]);
         }
       } else {
         if (
-          this.isEmptySquare(0, 1) &&
-          this.isEmptySquare(0, 2) &&
-          this.isEmptySquare(0, 3)
+          this.isEmptySquare(0, 1, grid) &&
+          this.isEmptySquare(0, 2, grid) &&
+          this.isEmptySquare(0, 3, grid)
         ) {
           moves.push([0, 2]);
         }
@@ -1400,13 +1542,14 @@ export default class ChessBoard extends Component {
     let newGrid = this.state.grid.slice();
     for (let i = 0; i < moves.length; i++) {
       if (this.isValidCoordinates(moves[i][0], moves[i][1])) {
-        if (!this.isEmptySquare(moves[i][0], moves[i][1])) {
+        if (!this.isEmptySquare(moves[i][0], moves[i][1], this.state.grid)) {
           if (
             this.isSameColor(
               this.state.selectedRow,
               this.state.selectedCol,
               moves[i][0],
-              moves[i][1]
+              moves[i][1],
+              this.state.grid
             )
           ) {
             moves.splice(i, 1);
@@ -1419,30 +1562,44 @@ export default class ChessBoard extends Component {
       this.state.selectedRow,
       this.state.selectedCol,
       moves,
-      this.state.selectedPieceName
+      this.state.selectedPieceName,
+      this.state.grid
     );
     if (this.state.selectedPieceName === "Pawn") {
       moves = this.checkPawnTake(
         this.state.selectedRow,
         this.state.selectedCol,
         moves,
-        this.getPieceColor(this.state.selectedRow, this.state.selectedCol)
+        this.getPieceColor(
+          this.state.selectedRow,
+          this.state.selectedCol,
+          this.state.grid
+        ),
+        this.state.grid
       );
       let enPassantMoves = this.addEnPassantMoves(
         this.state.selectedRow,
         this.state.selectedCol,
-        this.getPieceColor(this.state.selectedRow, this.state.selectedCol)
+        this.getPieceColor(
+          this.state.selectedRow,
+          this.state.selectedCol,
+          this.state.grid
+        )
       );
       for (let i = 0; i < enPassantMoves.length; i++) {
         moves.push(enPassantMoves[i]);
       }
     }
     if (this.state.selectedPieceName === "King") {
-      moves = this.updateCastleMoves(moves);
+      moves = this.updateCastleMoves(moves, this.state.grid);
     }
     for (let i = 0; i < moves.length; i++) {
       if (this.isValidCoordinates(moves[i][0], moves[i][1])) {
-        let pieceAtMove = this.getPiece(moves[i][0], moves[i][1]);
+        let pieceAtMove = this.getPiece(
+          moves[i][0],
+          moves[i][1],
+          this.state.grid
+        );
         newGrid[moves[i][0]][moves[i][1]] = this.createChessSquare(
           moves[i][0],
           moves[i][1],
@@ -1450,7 +1607,11 @@ export default class ChessBoard extends Component {
         );
       }
     }
-    let piece = this.getPiece(this.state.selectedRow, this.state.selectedCol);
+    let piece = this.getPiece(
+      this.state.selectedRow,
+      this.state.selectedCol,
+      this.state.grid
+    );
     newGrid[this.state.selectedRow][
       this.state.selectedCol
     ] = this.createChessSquare(
@@ -1475,23 +1636,19 @@ export default class ChessBoard extends Component {
     this.setState({ moves: moves });
   }
 
-  getNode(row, col) {
-    return this.state.grid[row][col].Node;
+  getNode(row, col, grid) {
+    return grid[row][col].Node;
   }
 
-  getPiece(row, col) {
-    return this.state.grid[row][col].Node.props.piece;
+  getPiece(row, col, grid) {
+    return grid[row][col].Node.props.piece;
   }
 
-  getSelectedCoordinates() {
-    return [this.state.selectedRow, this.state.selectedCol];
+  getPieceName(row, col, grid) {
+    return grid[row][col].Node.props.piece.type.name;
   }
 
-  getPieceName(row, col) {
-    return this.state.grid[row][col].Node.props.piece.type.name;
-  }
-
-  getPieceColor(row, col) {
-    return this.state.grid[row][col].Node.props.piece.props.color;
+  getPieceColor(row, col, grid) {
+    return grid[row][col].Node.props.piece.props.color;
   }
 }
