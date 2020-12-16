@@ -1,3 +1,5 @@
+Chess Emulator. Code is currently set for the User (White) to "play" against the computer (Black). The computer uses the Mini-Max algorithim to select a move. The algorithim is set for a decision tree height of 3. The quality of moves gets better with larger tree height, but the time it takes to run the program will increases exponentially.
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
